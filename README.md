@@ -1,6 +1,17 @@
 # n8n-nodes-ivanti-neurons-itsm
 
-This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.com/products/ivanti-neurons-for-itsm) (formerly Ivanti Service Manager). It allows you to interact with Ivanti's ITSM platform to manage business objects, relationships, and attachments.
+[![npm version](https://img.shields.io/npm/v/n8n-nodes-ivanti-neurons-itsm.svg)](https://www.npmjs.com/package/n8n-nodes-ivanti-neurons-itsm)
+[![npm downloads](https://img.shields.io/npm/dm/n8n-nodes-ivanti-neurons-itsm.svg)](https://www.npmjs.com/package/n8n-nodes-ivanti-neurons-itsm)
+
+This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.com/products/ivanti-neurons-for-itsm) (formerly Ivanti Service Manager). It allows you to interact with Ivanti's ITSM platform to manage business objects, relationships, attachments, and perform advanced searches.
+
+## What's New in v0.2.0
+
+- ✨ **Search Resource** - Three new search operations (Simple Search, Full Text Search, Execute Saved Search)
+- 🏗️ **Modular Architecture** - Refactored to a clean, maintainable structure
+- 🎯 **Enhanced Error Handling** - Detailed error messages from Ivanti API
+- ✅ **Type Validation** - Proper field type validation with clear error messages
+- 🎨 **Dark Mode Support** - Updated icons for light and dark themes
 
 ## Features
 
@@ -40,6 +51,20 @@ Upload, download, and manage file attachments:
 - **Upload** - Upload files to business objects (Incidents, Changes, etc.)
 - **Get** - Download attachment files by ID
 - **Delete** - Remove attachments
+
+### 🔍 Search Operations
+
+Search and query business objects across your Ivanti instance:
+
+- **Simple Search** - Search business objects with OData filtering, sorting, and pagination
+- **Full Text Search** - Perform full-text searches across all business object fields
+- **Execute Saved Search** - Run saved searches configured in Ivanti with dynamic parameter loading
+
+**Advanced Features:**
+- OData filtering and sorting
+- Configurable result limits and pagination
+- Dynamic loading of saved searches from Ivanti
+- Field selection for optimized queries
 
 ## Installation
 
@@ -123,6 +148,26 @@ Business Object Name: Incident
 Record ID: "12345ABC"
 File Name: "screenshot.png"
 Input Binary Field: "data"
+```
+
+### Example 4: Search for Incidents
+
+```javascript
+// Simple Search
+Resource: Search
+Operation: Simple Search
+Business Object Name: Incident
+Return All: false
+Limit: 100
+Options:
+  - Filter: "Status eq 'Active'"
+  - Sort By: "CreatedDateTime desc"
+
+// Execute Saved Search
+Resource: Search
+Operation: Execute Saved Search
+Saved Search: "My Active Incidents" (from dropdown)
+Return All: true
 ```
 
 ## Configuration Options
