@@ -33,7 +33,7 @@ export const properties: INodeProperties[] = [
                 description: 'Input will be split in batches to throttle requests. -1 for disabled. 0 will be treated as 1.',
             },
             {
-                displayName: 'Batch Interval (ms)',
+                displayName: 'Batch Interval (Ms)',
                 name: 'batchInterval',
                 type: 'number',
                 typeOptions: {

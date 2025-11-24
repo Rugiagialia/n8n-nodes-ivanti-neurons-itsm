@@ -71,7 +71,7 @@ export const processAssignments = (
 
     for (const assignment of assignments) {
         const { name, type } = assignment;
-        let { value } = assignment;
+        const { value } = assignment;
 
         // If no type specified, just pass the value through (cast to any to satisfy IDataObject)
         if (!type) {

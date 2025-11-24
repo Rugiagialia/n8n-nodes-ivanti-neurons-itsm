@@ -32,10 +32,10 @@ export async function getObjectFields(this: ILoadOptionsFunctions) {
                 });
             });
         } else {
-            return [{ name: 'No records found to extract fields', value: '' }];
+            return [{ name: 'No Records Found to Extract Fields', value: '' }];
         }
 
-        return properties.length > 0 ? properties.sort((a, b) => a.name.localeCompare(b.name)) : [{ name: 'No fields found', value: '' }];
+        return properties.length > 0 ? properties.sort((a, b) => a.name.localeCompare(b.name)) : [{ name: 'No Fields Found', value: '' }];
     } catch (error) {
         return [{ name: `Error: ${error.message}`, value: '' }];
     }
@@ -74,7 +74,7 @@ export async function getSavedSearches(this: ILoadOptionsFunctions) {
 
         return matches.length > 0
             ? matches.sort((a, b) => a.name.localeCompare(b.name))
-            : [{ name: 'No saved searches found', value: '' }];
+            : [{ name: 'No Saved Searches Found', value: '' }];
 
     } catch (error) {
         return [{ name: `Error: ${error.message}`, value: '' }];

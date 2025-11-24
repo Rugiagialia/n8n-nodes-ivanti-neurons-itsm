@@ -10,7 +10,7 @@ import { cleanODataResponse, sleep, getIvantiErrorDetails } from '../../methods/
 
 export const properties: INodeProperties[] = [
     {
-        displayName: 'Saved Search',
+        displayName: 'Saved Search Name or ID',
         name: 'savedSearchId',
         type: 'options',
         typeOptions: {
@@ -25,7 +25,7 @@ export const properties: INodeProperties[] = [
                 operation: ['executeSavedSearch'],
             },
         },
-        description: 'Select a saved search to execute',
+        description: 'Select a saved search to execute. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     },
     {
         displayName: 'Return All',
@@ -140,7 +140,7 @@ export const properties: INodeProperties[] = [
                 description: 'Number of pages to fetch before pausing. -1 to disable delays.',
             },
             {
-                displayName: 'Pagination Interval (ms)',
+                displayName: 'Pagination Interval (Ms)',
                 name: 'paginationInterval',
                 type: 'number',
                 typeOptions: {

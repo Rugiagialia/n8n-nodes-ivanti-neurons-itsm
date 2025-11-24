@@ -48,7 +48,7 @@ export const properties: INodeProperties[] = [
         },
     },
     {
-        displayName: 'Select',
+        displayName: 'Select Names or IDs',
         name: 'select',
         type: 'multiOptions',
         typeOptions: {
@@ -56,7 +56,7 @@ export const properties: INodeProperties[] = [
             loadOptionsDependsOn: ['businessObject'],
         },
         default: [],
-        description: 'Fields to return in the response',
+        description: 'Fields to return in the response. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
         displayOptions: {
             show: {
                 resource: ['businessObject'],
@@ -106,7 +106,7 @@ export const properties: INodeProperties[] = [
                 description: 'Input will be split in batches to throttle requests. -1 for disabled. 0 will be treated as 1.',
             },
             {
-                displayName: 'Batch Interval (ms)',
+                displayName: 'Batch Interval (Ms)',
                 name: 'batchInterval',
                 type: 'number',
                 typeOptions: {

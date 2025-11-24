@@ -92,7 +92,7 @@ export const properties: INodeProperties[] = [
         },
     },
     {
-        displayName: 'Select',
+        displayName: 'Select Names or IDs',
         name: 'select',
         type: 'multiOptions',
         typeOptions: {
@@ -100,7 +100,7 @@ export const properties: INodeProperties[] = [
             loadOptionsDependsOn: ['businessObject'],
         },
         default: [],
-        description: 'Fields to return in the response',
+        description: 'Fields to return in the response. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
         displayOptions: {
             show: {
                 resource: ['search'],
@@ -209,7 +209,7 @@ export const properties: INodeProperties[] = [
                 description: 'Number of pages to fetch before pausing. -1 to disable delays.',
             },
             {
-                displayName: 'Pagination Interval (ms)',
+                displayName: 'Pagination Interval (Ms)',
                 name: 'paginationInterval',
                 type: 'number',
                 typeOptions: {
