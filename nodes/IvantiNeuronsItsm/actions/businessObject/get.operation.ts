@@ -1,0 +1,209 @@
+import {
+    IExecuteFunctions,
+    IDataObject,
+    INodeExecutionData,
+    INodeProperties,
+    NodeApiError,
+    JsonObject,
+} from 'n8n-workflow';
+import { cleanODataResponse, sleep, getIvantiErrorDetails } from '../../methods/helpers';
+
+export const properties: INodeProperties[] = [
+    {
+        displayName: 'Send Select Parameters',
+        name: 'useSelect',
+        type: 'boolean',
+        default: false,
+        description: 'Whether to specify which fields to return',
+        displayOptions: {
+            show: {
+                resource: ['businessObject'],
+                operation: ['get'],
+            },
+        },
+    },
+    {
+        displayName: 'Select Mode',
+        name: 'selectMode',
+        type: 'options',
+        options: [
+            {
+                name: 'From List',
+                value: 'list',
+                description: 'Select fields from a dropdown (fetches available fields)',
+            },
+            {
+                name: 'Manual',
+                value: 'manual',
+                description: 'Enter field names manually as comma-separated list',
+            },
+        ],
+        default: 'manual',
+        displayOptions: {
+            show: {
+                resource: ['businessObject'],
+                operation: ['get'],
+                useSelect: [true],
+            },
+        },
+    },
+    {
+        displayName: 'Select',
+        name: 'select',
+        type: 'multiOptions',
+        typeOptions: {
+            loadOptionsMethod: 'getObjectFields',
+            loadOptionsDependsOn: ['businessObject'],
+        },
+        default: [],
+        description: 'Fields to return in the response',
+        displayOptions: {
+            show: {
+                resource: ['businessObject'],
+                operation: ['get'],
+                useSelect: [true],
+                selectMode: ['list'],
+            },
+        },
+    },
+    {
+        displayName: 'Select (Manual)',
+        name: 'selectManual',
+        type: 'string',
+        default: '',
+        placeholder: 'RecId,Subject,Status',
+        description: 'Comma-separated list of fields to return',
+        displayOptions: {
+            show: {
+                resource: ['businessObject'],
+                operation: ['get'],
+                useSelect: [true],
+                selectMode: ['manual'],
+            },
+        },
+    },
+    {
+        displayName: 'Options',
+        name: 'options',
+        type: 'collection',
+        placeholder: 'Add Option',
+        default: {},
+        displayOptions: {
+            show: {
+                resource: ['businessObject'],
+                operation: ['get'],
+            },
+        },
+        options: [
+            {
+                displayName: 'Items per Batch',
+                name: 'batchSize',
+                type: 'number',
+                typeOptions: {
+                    minValue: -1,
+                },
+                default: 50,
+                description: 'Input will be split in batches to throttle requests. -1 for disabled. 0 will be treated as 1.',
+            },
+            {
+                displayName: 'Batch Interval (ms)',
+                name: 'batchInterval',
+                type: 'number',
+                typeOptions: {
+                    minValue: 0,
+                },
+                default: 1000,
+                description: 'Time (in milliseconds) between each batch of requests. 0 for disabled.',
+            },
+        ],
+    },
+];
+
+export async function execute(
+    this: IExecuteFunctions,
+    items: INodeExecutionData[],
+): Promise<INodeExecutionData[]> {
+    const returnData: INodeExecutionData[] = [];
+    const options = this.getNodeParameter('options', 0, {}) as IDataObject;
+    const batchSize = (options.batchSize as number) !== undefined ? (options.batchSize as number) : -1;
+    const batchInterval = (options.batchInterval as number) !== undefined ? (options.batchInterval as number) : 1000;
+
+    const effectiveBatchSize = batchSize !== -1 ? Math.max(1, batchSize) : items.length;
+
+    for (let i = 0; i < items.length; i++) {
+        try {
+            const businessObject = this.getNodeParameter('businessObject', i) as string;
+            const objectName = `${businessObject}s`;
+            const recId = this.getNodeParameter('recId', i) as string;
+            const useSelect = this.getNodeParameter('useSelect', i) as boolean;
+
+            const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
+            const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
+
+            const qs: IDataObject = {};
+
+            if (useSelect) {
+                const selectMode = this.getNodeParameter('selectMode', i) as string;
+                if (selectMode === 'list') {
+                    const select = this.getNodeParameter('select', i) as string[];
+                    if (select && select.length > 0) {
+                        qs['$select'] = select.join(',');
+                    }
+                } else {
+                    const selectManual = this.getNodeParameter('selectManual', i) as string;
+                    if (selectManual) {
+                        qs['$select'] = selectManual;
+                    }
+                }
+
+                qs['$filter'] = `RecId eq '${recId}'`;
+
+                const response = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', {
+                    method: 'GET',
+                    url: `${baseUrl}/api/odata/businessobject/${objectName}`,
+                    qs,
+                    json: true,
+                    skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
+                });
+
+                if (response.value && Array.isArray(response.value) && response.value.length > 0) {
+                    returnData.push({ json: cleanODataResponse(response.value[0]) as IDataObject });
+                } else {
+                    throw new Error(`Item with ID '${recId}' not found.`);
+                }
+            } else {
+                const response = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', {
+                    method: 'GET',
+                    url: `${baseUrl}/api/odata/businessobject/${objectName}('${recId}')`,
+                    qs,
+                    json: true,
+                    skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
+                });
+                returnData.push({ json: cleanODataResponse(response) });
+            }
+
+        } catch (error) {
+            const { message, description } = getIvantiErrorDetails(error);
+
+            if (this.continueOnFail()) {
+                returnData.push({
+                    json: {
+                        error: message,
+                        details: description
+                    }
+                });
+                continue;
+            }
+            throw new NodeApiError(this.getNode(), error as JsonObject, {
+                message,
+                description: Array.isArray(description) ? description.join('\n') : description,
+            });
+        }
+
+        if (batchSize !== -1 && batchInterval > 0 && (i + 1) % effectiveBatchSize === 0 && (i + 1) < items.length) {
+            await sleep(batchInterval);
+        }
+    }
+
+    return returnData;
+}

@@ -8,9 +8,9 @@ import {
 export class IvantiNeuronsItsmApi implements ICredentialType {
     name = 'ivantiNeuronsItsmApi';
     displayName = 'Ivanti Neurons for ITSM API';
-    // @ts-expect-error - Icon is required by n8n community nodes but not in type definition
-    icon = 'file:../icons/ivanti.svg';
-    documentationUrl = 'https://help.ivanti.com/ht/help/en_US/ISM/2019.1/admin/Content/Configure/API/RestAPI-Introduction.htm';
+    documentationUrl = 'https://help.ivanti.com/ht/help/en_US/ISM/2017.3/Content/Configure/API/Authentication.htm';
+    // @ts-ignore
+    icon = 'node:n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm';
     properties: INodeProperties[] = [
         {
             displayName: 'Tenant URL',
