@@ -1,0 +1,556 @@
+{
+    "name": "Ivanti Neurons ITSM - Complete Test Workflow",
+    "nodes": [
+        {
+            "parameters": {},
+            "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "name": "When clicking 'Test workflow'",
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "resource": "businessObject",
+                "operation": "create",
+                "businessObject": "Incident",
+                "mode": "manual",
+                "assignments": {
+                    "assignments": [
+                        {
+                            "name": "Subject",
+                            "value": "Test Incident - {{ $now.format('YYYY-MM-DD HH:mm:ss') }}",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Status",
+                            "value": "Active",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Priority",
+                            "value": "3",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Description",
+                            "value": "This is a test incident created by n8n workflow",
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "id": "b2c3d4e5-f678-90ab-cdef-1234567890ab",
+            "name": "Business Object - Create Incident",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "businessObject",
+                "operation": "get",
+                "businessObject": "Incident",
+                "recId": "={{ $json.RecId }}"
+            },
+            "id": "c3d4e5f6-7890-abcd-ef12-34567890abcd",
+            "name": "Business Object - Get Incident",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "businessObject",
+                "operation": "update",
+                "businessObject": "Incident",
+                "recId": "={{ $json.RecId }}",
+                "mode": "manual",
+                "assignments": {
+                    "assignments": [
+                        {
+                            "name": "Status",
+                            "value": "Resolved",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Resolution",
+                            "value": "Issue resolved via n8n workflow test",
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "id": "d4e5f678-90ab-cdef-1234-567890abcdef",
+            "name": "Business Object - Update Incident",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                850,
+                300
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "businessObject",
+                "operation": "getAll",
+                "businessObject": "Incident",
+                "returnAll": false,
+                "limit": 10,
+                "options": {
+                    "filter": "Status eq 'Active'"
+                }
+            },
+            "id": "e5f67890-abcd-ef12-3456-7890abcdef12",
+            "name": "Business Object - Get Many (Filter)",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                450,
+                500
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "businessObject",
+                "operation": "getAll",
+                "businessObject": "Incident",
+                "returnAll": false,
+                "limit": 5,
+                "useSelect": true,
+                "selectMode": "manual",
+                "selectManual": "RecId,Subject,Status,Priority",
+                "useSort": true,
+                "orderByField": "CreatedDateTime",
+                "orderDirection": "desc"
+            },
+            "id": "f6789012-3456-7890-abcd-ef1234567890",
+            "name": "Business Object - Get Many (Select & Sort)",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                650,
+                500
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "businessObject",
+                "operation": "create",
+                "businessObject": "Journal__Notes",
+                "mode": "json",
+                "body": "{\n  \"Details\": \"This is a test journal note created via n8n\",\n  \"IsVisibleToCustomer\": false\n}"
+            },
+            "id": "g7890123-4567-890a-bcde-f12345678901",
+            "name": "Create Journal Note (for Relationship)",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                450,
+                700
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "relationship",
+                "operation": "createRelationship",
+                "businessObject": "Incident",
+                "recId": "={{ $('Business Object - Create Incident').item.json.RecId }}",
+                "relationshipName": "IncidentContainsJournal__Notes",
+                "relatedRecId": "={{ $json.RecId }}"
+            },
+            "id": "h8901234-5678-90ab-cdef-123456789012",
+            "name": "Relationship - Create Link",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                650,
+                700
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "relationship",
+                "operation": "getRelated",
+                "businessObject": "Incident",
+                "recId": "={{ $('Business Object - Create Incident').item.json.RecId }}",
+                "relationshipName": "IncidentContainsJournal__Notes"
+            },
+            "id": "i9012345-6789-0abc-def1-234567890123",
+            "name": "Relationship - Get Related",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                850,
+                700
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "relationship",
+                "operation": "deleteRelationship",
+                "businessObject": "Incident",
+                "recId": "={{ $('Business Object - Create Incident').item.json.RecId }}",
+                "relationshipName": "IncidentContainsJournal__Notes",
+                "relatedRecId": "={{ $('Create Journal Note (for Relationship)').item.json.RecId }}"
+            },
+            "id": "j0123456-789a-bcde-f123-4567890abcde",
+            "name": "Relationship - Delete Link",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                700
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "mode": "jsonToBinary",
+                "options": {
+                    "fileName": "test-file.txt",
+                    "mimeType": "text/plain"
+                },
+                "jsonInput": "This is a test file attachment created by n8n workflow for Ivanti ITSM testing."
+            },
+            "id": "k1234567-89ab-cdef-1234-567890abcdef",
+            "name": "Create Test File",
+            "type": "n8n-nodes-base.convertToFile",
+            "typeVersion": 1.1,
+            "position": [
+                450,
+                900
+            ]
+        },
+        {
+            "parameters": {
+                "resource": "attachment",
+                "operation": "upload",
+                "businessObject": "Incident",
+                "recId": "={{ $('Business Object - Create Incident').item.json.RecId }}",
+                "fileName": "test-attachment.txt",
+                "binaryPropertyName": "data"
+            },
+            "id": "l2345678-9abc-def1-2345-67890abcdef1",
+            "name": "Attachment - Upload",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                650,
+                900
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "attachment",
+                "operation": "get",
+                "recId": "={{ $json.attachmentId || $json.id || $json.RecId }}"
+            },
+            "id": "m3456789-abcd-ef12-3456-7890abcdef12",
+            "name": "Attachment - Get (Download)",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                850,
+                900
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "attachment",
+                "operation": "delete",
+                "recId": "={{ $('Attachment - Upload').item.json.attachmentId || $('Attachment - Upload').item.json.id || $('Attachment - Upload').item.json.RecId }}"
+            },
+            "id": "n4567890-bcde-f123-4567-890abcdef123",
+            "name": "Attachment - Delete",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                900
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "businessObject",
+                "operation": "delete",
+                "businessObject": "Incident",
+                "recId": "={{ $('Business Object - Create Incident').item.json.RecId }}"
+            },
+            "id": "o5678901-cdef-1234-5678-90abcdef1234",
+            "name": "Business Object - Delete Incident (Cleanup)",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                300
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "businessObject",
+                "operation": "delete",
+                "businessObject": "Journal__Notes",
+                "recId": "={{ $('Create Journal Note (for Relationship)').item.json.RecId }}"
+            },
+            "id": "p6789012-def1-2345-6789-0abcdef12345",
+            "name": "Delete Journal Note (Cleanup)",
+            "type": "n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm",
+            "typeVersion": 1,
+            "position": [
+                1250,
+                700
+            ],
+            "credentials": {
+                "ivantiNeuronsItsmApi": {
+                    "id": "1",
+                    "name": "Ivanti Neurons ITSM API account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "When clicking 'Test workflow'": {
+            "main": [
+                [
+                    {
+                        "node": "Business Object - Create Incident",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Business Object - Create Incident": {
+            "main": [
+                [
+                    {
+                        "node": "Business Object - Get Incident",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Business Object - Get Many (Filter)",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Create Journal Note (for Relationship)",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Create Test File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Business Object - Get Incident": {
+            "main": [
+                [
+                    {
+                        "node": "Business Object - Update Incident",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Business Object - Update Incident": {
+            "main": [
+                [
+                    {
+                        "node": "Business Object - Delete Incident (Cleanup)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Business Object - Get Many (Filter)": {
+            "main": [
+                [
+                    {
+                        "node": "Business Object - Get Many (Select & Sort)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Journal Note (for Relationship)": {
+            "main": [
+                [
+                    {
+                        "node": "Relationship - Create Link",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Relationship - Create Link": {
+            "main": [
+                [
+                    {
+                        "node": "Relationship - Get Related",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Relationship - Get Related": {
+            "main": [
+                [
+                    {
+                        "node": "Relationship - Delete Link",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Relationship - Delete Link": {
+            "main": [
+                [
+                    {
+                        "node": "Delete Journal Note (Cleanup)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Test File": {
+            "main": [
+                [
+                    {
+                        "node": "Attachment - Upload",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Attachment - Upload": {
+            "main": [
+                [
+                    {
+                        "node": "Attachment - Get (Download)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Attachment - Get (Download)": {
+            "main": [
+                [
+                    {
+                        "node": "Attachment - Delete",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "tags": [],
+    "triggerCount": 1,
+    "updatedAt": "2025-11-23T18:40:00.000Z",
+    "versionId": "1"
+}

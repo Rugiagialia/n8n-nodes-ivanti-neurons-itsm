@@ -1,247 +1,233 @@
-![Banner image](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
+# n8n-nodes-ivanti-neurons-itsm
 
-# n8n-nodes-starter
+This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.com/products/ivanti-neurons-for-itsm) (formerly Ivanti Service Manager). It allows you to interact with Ivanti's ITSM platform to manage business objects, relationships, and attachments.
 
-This starter repository helps you build custom integrations for [n8n](https://n8n.io). It includes example nodes, credentials, the node linter, and all the tooling you need to get started.
+## Features
 
-## Quick Start
+This node provides comprehensive access to Ivanti Neurons ITSM through three main resources:
 
-> [!TIP]
-> **New to building n8n nodes?** The fastest way to get started is with `npm create @n8n/node`. This command scaffolds a complete node package for you using the [@n8n/node-cli](https://www.npmjs.com/package/@n8n/node-cli).
+### 📦 Business Object Operations
 
-**To create a new node package from scratch:**
+Manage any business object type (Incidents, Changes, Problems, etc.):
+
+- **Create** - Create new business objects with manual field mapping or JSON
+- **Get** - Retrieve a single business object by ID with optional field selection
+- **Get Many** - Retrieve multiple business objects with filtering, sorting, and pagination
+- **Update** - Update existing business objects
+- **Delete** - Delete business objects
+
+**Advanced Features:**
+- Manual field mapping with type conversion (string, number, boolean, array, object)
+- JSON mode for complex data structures
+- Field selection ($select) with list or manual mode
+- OData filtering ($filter)
+- Sorting ($orderby)
+- Automatic batching and throttling for bulk operations
+- Pagination controls for large datasets
+
+### 🔗 Relationship Operations
+
+Link and manage relationships between business objects:
+
+- **Create** - Link two business objects (e.g., link a Journal Note to an Incident)
+- **Delete** - Remove a relationship between business objects
+- **Get Related** - Retrieve all related business objects
+
+### 📎 Attachment Operations
+
+Upload, download, and manage file attachments:
+
+- **Upload** - Upload files to business objects (Incidents, Changes, etc.)
+- **Get** - Download attachment files by ID
+- **Delete** - Remove attachments
+
+## Installation
+
+### Community Install (Recommended)
+
+For n8n Cloud or self-hosted instances with community nodes enabled:
 
 ```bash
-npm create @n8n/node
+npm install n8n-nodes-ivanti-neurons-itsm
 ```
 
-**Already using this starter? Start developing with:**
+### Manual Install (Development)
+
+For local development or custom n8n instances:
 
 ```bash
-npm run dev
-```
+# Clone the repository
+git clone https://github.com/Rugiagialia/n8n-nodes-ivanti-neurons-itsm.git
+cd n8n-nodes-ivanti-neurons-itsm
 
-This starts n8n with your nodes loaded and hot reload enabled.
-
-## What's Included
-
-This starter repository includes two example nodes to learn from:
-
-- **[Example Node](nodes/Example/)** - A simple starter node that shows the basic structure with a custom `execute` method
-- **[GitHub Issues Node](nodes/GithubIssues/)** - A complete, production-ready example built using the **declarative style**:
-  - **Low-code approach** - Define operations declaratively without writing request logic
-  - Multiple resources (Issues, Comments)
-  - Multiple operations (Get, Get All, Create)
-  - Two authentication methods (OAuth2 and Personal Access Token)
-  - List search functionality for dynamic dropdowns
-  - Proper error handling and typing
-  - Ideal for HTTP API-based integrations
-
-> [!TIP]
-> The declarative/low-code style (used in GitHub Issues) is the recommended approach for building nodes that interact with HTTP APIs. It significantly reduces boilerplate code and handles requests automatically.
-
-Browse these examples to understand both approaches, then modify them or create your own.
-
-## Finding Inspiration
-
-Looking for more examples? Check out these resources:
-
-- **[npm Community Nodes](https://www.npmjs.com/search?q=keywords:n8n-community-node-package)** - Browse thousands of community-built nodes on npm using the `n8n-community-node-package` tag
-- **[n8n Built-in Nodes](https://github.com/n8n-io/n8n/tree/master/packages/nodes-base/nodes)** - Study the source code of n8n's official nodes for production-ready patterns and best practices
-- **[n8n Credentials](https://github.com/n8n-io/n8n/tree/master/packages/nodes-base/credentials)** - See how authentication is implemented for various services
-
-These are excellent resources to understand how to structure your nodes, handle different API patterns, and implement advanced features.
-
-## Prerequisites
-
-Before you begin, install the following on your development machine:
-
-### Required
-
-- **[Node.js](https://nodejs.org/)** (v22 or higher) and npm
-  - Linux/Mac/WSL: Install via [nvm](https://github.com/nvm-sh/nvm)
-  - Windows: Follow [Microsoft's NodeJS guide](https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows)
-- **[git](https://git-scm.com/downloads)**
-
-### Recommended
-
-- Follow n8n's [development environment setup guide](https://docs.n8n.io/integrations/creating-nodes/build/node-development-environment/)
-
-> [!NOTE]
-> The `@n8n/node-cli` is included as a dev dependency and will be installed automatically when you run `npm install`. The CLI includes n8n for local development, so you don't need to install n8n globally.
-
-## Getting Started with this Starter
-
-Follow these steps to create your own n8n community node package:
-
-### 1. Create Your Repository
-
-[Generate a new repository](https://github.com/n8n-io/n8n-nodes-starter/generate) from this template, then clone it:
-
-```bash
-git clone https://github.com/<your-organization>/<your-repo-name>.git
-cd <your-repo-name>
-```
-
-### 2. Install Dependencies
-
-```bash
+# Install dependencies
 npm install
+
+# Build the node
+npm run build
+
+# Link to n8n
+cd ~/.n8n/nodes
+npm install /path/to/n8n-nodes-ivanti-neurons-itsm
 ```
 
-This installs all required dependencies including the `@n8n/node-cli`.
+Restart n8n to load the node.
 
-### 3. Explore the Examples
+## Credentials
 
-Browse the example nodes in [nodes/](nodes/) and [credentials/](credentials/) to understand the structure:
+This node requires an Ivanti Neurons ITSM API credential with:
 
-- Start with [nodes/Example/](nodes/Example/) for a basic node
-- Study [nodes/GithubIssues/](nodes/GithubIssues/) for a real-world implementation
+- **Tenant URL** - Your Ivanti cloud instance URL (e.g., `https://example.ivanticloud.com`)
+- **API Key** - Your REST API key from Ivanti
+- **Ignore SSL Issues** - Optional, for self-signed certificates
 
-### 4. Build Your Node
+To generate an API key in Ivanti:
+1. Log in to your Ivanti instance
+2. Navigate to **Configuration** → **Security Settings** → **API Keys**
+3. Create a new REST API key
 
-Edit the example nodes to fit your use case, or create new node files by copying the structure from [nodes/Example/](nodes/Example/).
+## Usage Examples
 
-> [!TIP]
-> If you want to scaffold a completely new node package, use `npm create @n8n/node` to start fresh with the CLI's interactive generator.
+### Example 1: Create an Incident
 
-### 5. Configure Your Package
+```javascript
+// Using Manual Mapping mode
+Resource: Business Object
+Operation: Create
+Business Object Name: Incident
+Mode: Manual Mapping
+Fields to Set:
+  - Subject = "Server is down"
+  - Status = "Active"
+  - Priority = "1"
+```
 
-Update `package.json` with your details:
+### Example 2: Get Incidents with Filtering
 
-- `name` - Your package name (must start with `n8n-nodes-`)
-- `author` - Your name and email
-- `repository` - Your repository URL
-- `description` - What your node does
+```javascript
+Resource: Business Object
+Operation: Get Many
+Business Object Name: Incident
+Return All: false
+Limit: 50
+Options:
+  - Filter: "Status eq 'Active' and Priority eq '1'"
+```
 
-Make sure your node is registered in the `n8n.nodes` array.
+### Example 3: Upload an Attachment
 
-### 6. Develop and Test Locally
+```javascript
+Resource: Attachment
+Operation: Upload
+Business Object Name: Incident
+Record ID: "12345ABC"
+File Name: "screenshot.png"
+Input Binary Field: "data"
+```
 
-Start n8n with your node loaded:
+## Configuration Options
+
+### Batching (for Create/Update/Delete/Get operations)
+
+Control request throttling to avoid API rate limits:
+
+- **Items per Batch** - Number of items to process before pausing (default: 50, -1 to disable)
+- **Batch Interval** - Milliseconds to wait between batches (default: 1000ms)
+
+### Pagination (for Get Many operations)
+
+Control pagination behavior for large datasets:
+
+- **Pages per Batch** - Number of pages to fetch before pausing (default: 10, -1 to disable)
+- **Pagination Interval** - Milliseconds to wait between page batches (default: 100ms)
+
+### Field Selection
+
+Choose which fields to return:
+
+- **From List** - Select fields from a dropdown (dynamically fetched from Ivanti)
+- **Manual** - Enter field names as comma-separated list
+
+## API Documentation
+
+This node uses the Ivanti Neurons ITSM REST API:
+
+- [REST API Introduction](https://help.ivanti.com/ht/help/en_US/ISM/2022/admin/Content/Configure/API/RestAPI-Introduction.htm)
+- [OData API Reference](https://help.ivanti.com/ht/help/en_US/ISM/2022/admin/Content/Configure/API/OData-API.htm)
+- [Attachment APIs](https://help.ivanti.com/ht/help/en_US/ISM/2022/admin/Content/Configure/API/Attachment-APIs.htm)
+
+## Development
+
+### Prerequisites
+
+- Node.js v22 or higher
+- npm
+
+### Setup
 
 ```bash
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-```
 
-This command runs `n8n-node dev` which:
+# Build for production
+npm run build
 
-- Builds your node with watch mode
-- Starts n8n with your node available
-- Automatically rebuilds when you make changes
-- Opens n8n in your browser (usually http://localhost:5678)
-
-You can now test your node in n8n workflows!
-
-> [!NOTE]
-> Learn more about CLI commands in the [@n8n/node-cli documentation](https://www.npmjs.com/package/@n8n/node-cli).
-
-### 7. Lint Your Code
-
-Check for errors:
-
-```bash
+# Run linter
 npm run lint
-```
 
-Auto-fix issues when possible:
-
-```bash
+# Fix linting issues
 npm run lint:fix
 ```
 
-### 8. Build for Production
+## Compatibility
 
-When ready to publish:
-
-```bash
-npm run build
-```
-
-This compiles your TypeScript code to the `dist/` folder.
-
-### 9. Prepare for Publishing
-
-Before publishing:
-
-1. **Update documentation**: Replace this README with your node's documentation. Use [README_TEMPLATE.md](README_TEMPLATE.md) as a starting point.
-2. **Update the LICENSE**: Add your details to the [LICENSE](LICENSE.md) file.
-3. **Test thoroughly**: Ensure your node works in different scenarios.
-
-### 10. Publish to npm
-
-Publish your package to make it available to the n8n community:
-
-```bash
-npm publish
-```
-
-Learn more about [publishing to npm](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
-
-### 11. Submit for Verification (Optional)
-
-Get your node verified for n8n Cloud:
-
-1. Ensure your node meets the [requirements](https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/):
-   - Uses MIT license ✅ (included in this starter)
-   - No external package dependencies
-   - Follows n8n's design guidelines
-   - Passes quality and security review
-
-2. Submit through the [n8n Creator Portal](https://creators.n8n.io/nodes)
-
-**Benefits of verification:**
-
-- Available directly in n8n Cloud
-- Discoverable in the n8n nodes panel
-- Verified badge for quality assurance
-- Increased visibility in the n8n community
-
-## Available Scripts
-
-This starter includes several npm scripts to streamline development:
-
-| Script                | Description                                                      |
-| --------------------- | ---------------------------------------------------------------- |
-| `npm run dev`         | Start n8n with your node and watch for changes (runs `n8n-node dev`) |
-| `npm run build`       | Compile TypeScript to JavaScript for production (runs `n8n-node build`) |
-| `npm run build:watch` | Build in watch mode (auto-rebuild on changes)                    |
-| `npm run lint`        | Check your code for errors and style issues (runs `n8n-node lint`) |
-| `npm run lint:fix`    | Automatically fix linting issues when possible (runs `n8n-node lint --fix`) |
-| `npm run release`     | Create a new release (runs `n8n-node release`)                   |
-
-> [!TIP]
-> These scripts use the [@n8n/node-cli](https://www.npmjs.com/package/@n8n/node-cli) under the hood. You can also run CLI commands directly, e.g., `npx n8n-node dev`.
+- **n8n version**: 1.0.0 or higher
+- **API Version**: Ivanti Neurons for ITSM 2019.1+
 
 ## Troubleshooting
 
-### My node doesn't appear in n8n
+### Node doesn't appear in n8n
 
-1. Make sure you ran `npm install` to install dependencies
-2. Check that your node is listed in `package.json` under `n8n.nodes`
-3. Restart the dev server with `npm run dev`
-4. Check the console for any error messages
+1. Verify the node is installed: `ls ~/.n8n/nodes/node_modules`
+2. Check package.json for correct n8n.nodes configuration
+3. Restart n8n completely
+4. Check n8n logs for errors
 
-### Linting errors
+### Authentication fails
 
-Run `npm run lint:fix` to automatically fix most common issues. For remaining errors, check the [n8n node development guidelines](https://docs.n8n.io/integrations/creating-nodes/).
+1. Verify your Tenant URL is correct (no trailing slash)
+2. Check API Key is valid and active in Ivanti
+3. Ensure your user has sufficient permissions
+4. Try enabling "Ignore SSL Issues" if using self-signed certificates
 
-### TypeScript errors
+### Rate limiting errors
 
-Make sure you're using Node.js v22 or higher and have run `npm install` to get all type definitions.
-
-## Resources
-
-- **[n8n Node Documentation](https://docs.n8n.io/integrations/creating-nodes/)** - Complete guide to building nodes
-- **[n8n Community Forum](https://community.n8n.io/)** - Get help and share your nodes
-- **[@n8n/node-cli Documentation](https://www.npmjs.com/package/@n8n/node-cli)** - CLI tool reference
-- **[n8n Creator Portal](https://creators.n8n.io/nodes)** - Submit your node for verification
-- **[Submit Community Nodes Guide](https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/)** - Verification requirements and process
+Increase batch intervals:
+- Items per Batch: 25
+- Batch Interval: 2000ms
 
 ## Contributing
 
-Have suggestions for improving this starter? [Open an issue](https://github.com/n8n-io/n8n-nodes-starter/issues) or submit a pull request!
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## Support
+
+- [Report issues](https://github.com/Rugiagialia/n8n-nodes-ivanti-neurons-itsm/issues)
+- [n8n Community Forum](https://community.n8n.io/)
 
 ## License
 
-[MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
+[MIT](LICENSE.md)
+
+## Author
+
+Built with ❤️ for the n8n community
