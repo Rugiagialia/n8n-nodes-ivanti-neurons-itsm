@@ -108,28 +108,28 @@ export async function execute(
             const fileName = userFileName || binaryData.fileName || 'file';
 
             // Prepare file buffer from base64 binary data
-            // @ts-ignore
+            // @ts-expect-error - Buffer.from is available in Node.js
             const fileBuffer = Buffer.from(binaryData.data, 'base64');
 
             // Use FormData from form-data package (same as n8n HTTP Request node)
-            // @ts-ignore
+            // @ts-expect-error - require is needed for form-data package
             const FormData = require('form-data');
-            const formData = new FormData();
+            const form = new FormData();
 
-            // Append binary file with Buffer
-            formData.append('file', fileBuffer, {
+            form.append('AttachmentType', 'File');
+            form.append('file', fileBuffer, {
                 filename: fileName,
                 contentType: binaryData.mimeType || 'application/octet-stream',
             });
 
             // Append required fields per Ivanti API spec
-            formData.append('ObjectID', recId);
-            formData.append('ObjectType', businessObject.toLowerCase() + '#');
+            form.append('ObjectID', recId);
+            form.append('ObjectType', businessObject.toLowerCase() + '#');
 
             const response = await this.helpers.httpRequest({
                 method: 'POST',
                 url: `${baseUrl}/api/rest/Attachment`,
-                body: formData,
+                body: form,
                 headers: {
                     'Authorization': `rest_api_key=${credentials.apiKey}`,
                 },

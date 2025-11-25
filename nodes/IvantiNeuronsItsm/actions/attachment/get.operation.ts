@@ -74,13 +74,12 @@ export async function execute(
                 skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
             });
 
-            // Extract binary data - response.body contains the arraybuffer
-            // @ts-ignore
+            // @ts-expect-error - response.body can be ArrayBuffer or Buffer
             let data: Buffer;
             if (response.body instanceof ArrayBuffer) {
-                // @ts-ignore
+                // @ts-expect-error - Buffer.from accepts ArrayBuffer
                 data = Buffer.from(response.body);
-                // @ts-ignore
+                // @ts-expect-error - Buffer check needed for type narrowing
             } else if (Buffer.isBuffer(response.body)) {
                 data = response.body;
             } else {
@@ -92,7 +91,7 @@ export async function execute(
             let fileName = `attachment_${recId}`;
             if (headers['content-disposition']) {
                 const contentDisposition = headers['content-disposition'] as string;
-                const match = contentDisposition.match(/filename=\"?([^\"]+)\"?/);
+                const match = contentDisposition.match(/filename="?([^"]+)"?/);
                 if (match && match[1]) {
                     fileName = match[1];
                 }

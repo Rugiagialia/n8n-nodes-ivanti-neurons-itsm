@@ -64,7 +64,6 @@ export async function getSavedSearches(this: ILoadOptionsFunctions) {
 
         const matches: Array<{ name: string; value: string }> = [];
         let match;
-        // @ts-ignore
         while ((match = functionRegex.exec(response)) !== null) {
             matches.push({
                 name: match[1].replace(/_/g, ' '), // Replace underscores with spaces for display

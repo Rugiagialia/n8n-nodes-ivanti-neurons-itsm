@@ -145,7 +145,7 @@ export async function execute(
                 if (typeof body === 'string') {
                     try {
                         body = JSON.parse(body);
-                    } catch (error) {
+                    } catch {
                         throw new Error('Invalid JSON in "JSON" parameter');
                     }
                 }

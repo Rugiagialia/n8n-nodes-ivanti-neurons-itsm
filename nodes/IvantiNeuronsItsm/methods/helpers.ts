@@ -27,7 +27,7 @@ export const cleanODataResponse = (data: any): any => {
 export const sleep = async (ms: number): Promise<void> => {
     if (ms <= 0) return;
     return new Promise<void>((resolve) => {
-        // @ts-ignore
+        // @ts-expect-error - setTimeout types are correct
         setTimeout(resolve, ms);
     });
 };
@@ -71,9 +71,9 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
                 }
 
                 // Convert byte array to string
-                const dataStr = String.fromCharCode.apply(null, byteArray as any);
+                const dataStr = String.fromCharCode.apply(null, byteArray as number[]);
                 data = JSON.parse(dataStr);
-            } catch (e) {
+            } catch {
                 // If parsing fails, keep as-is
             }
         }
@@ -107,14 +107,14 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
         if (typeof body === 'string') {
             try {
                 body = JSON.parse(body);
-            } catch (e) {
+            } catch {
                 // If parsing fails, keep as-is
             }
         } else if (body && typeof body === 'object' && typeof body.toString === 'function' && body.constructor && body.constructor.name === 'Buffer') {
             try {
                 const bodyStr = body.toString('utf-8');
                 body = JSON.parse(bodyStr);
-            } catch (e) {
+            } catch {
                 // If parsing fails, keep as-is
             }
         }

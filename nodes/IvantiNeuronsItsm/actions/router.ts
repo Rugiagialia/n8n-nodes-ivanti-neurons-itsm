@@ -48,16 +48,16 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
     let result: INodeExecutionData[];
 
     if (resource === 'businessObject') {
-        // @ts-ignore
+        // @ts-expect-error - Dynamic operation execution
         result = await businessObject[operation].execute.call(this, items);
     } else if (resource === 'relationship') {
-        // @ts-ignore
+        // @ts-expect-error - Dynamic operation execution
         result = await relationship[operation].execute.call(this, items);
     } else if (resource === 'attachment') {
-        // @ts-ignore
+        // @ts-expect-error - Dynamic operation execution
         result = await attachment[operation].execute.call(this, items);
     } else if (resource === 'search') {
-        // @ts-ignore
+        // @ts-expect-error - Dynamic operation execution
         result = await search[operation].execute.call(this, items);
     } else {
         result = initialData;
