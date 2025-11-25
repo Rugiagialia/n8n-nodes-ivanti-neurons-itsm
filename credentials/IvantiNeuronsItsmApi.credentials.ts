@@ -3,14 +3,13 @@ import {
     ICredentialTestRequest,
     ICredentialType,
     INodeProperties,
-    Icon,
 } from 'n8n-workflow';
 
 export class IvantiNeuronsItsmApi implements ICredentialType {
     name = 'ivantiNeuronsItsmApi';
     displayName = 'Ivanti Neurons for ITSM API';
     documentationUrl = 'https://help.ivanti.com/ht/help/en_US/ISM/2017.3/Content/Configure/API/Authentication.htm';
-    icon: Icon = 'node:n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm';
+    icon = 'node:n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm' as any;
     properties: INodeProperties[] = [
         {
             displayName: 'Tenant URL',
