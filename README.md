@@ -8,6 +8,7 @@ This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.c
 ## What's New in v0.3.0
 
 - 🧹 **Strip Null Values Option** - New option to remove null values from output for cleaner data processing
+- 🐛 **Improved Error Handling** - Better parsing of Ivanti API errors, including support for binary/attachment operation errors
 
 ## Previous Updates (v0.2.0)
 
