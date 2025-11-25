@@ -18,7 +18,7 @@ export const properties: INodeProperties[] = [
         displayOptions: {
             show: {
                 resource: ['relationship'],
-                operation: ['deleteRelationship'],
+                operation: ['delete'],
             },
         },
         options: [

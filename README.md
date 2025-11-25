@@ -5,7 +5,11 @@
 
 This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.com/products/ivanti-neurons-for-itsm) (formerly Ivanti Service Manager). It allows you to interact with Ivanti's ITSM platform to manage business objects, relationships, attachments, and perform advanced searches.
 
-## What's New in v0.2.0
+## What's New in v0.3.0
+
+- 🧹 **Strip Null Values Option** - New option to remove null values from output for cleaner data processing
+
+## Previous Updates (v0.2.0)
 
 - ✨ **Search Resource** - Three new search operations (Simple Search, Full Text Search, Execute Saved Search)
 - 🏗️ **Modular Architecture** - Refactored to a clean, maintainable structure
@@ -171,6 +175,31 @@ Return All: true
 ```
 
 ## Configuration Options
+
+### Strip Null Values
+
+Remove fields with null values from the output for cleaner data processing:
+
+- **Available for**: Get, Get Many, Create, Update (Business Object), Get Related (Relationship), and all Search operations
+- **Default**: Off (all values including nulls are returned)
+- **When enabled**: Recursively removes all fields with null values from the JSON output
+
+**Example:**
+```javascript
+// With Strip Null Values OFF (default):
+{
+  "RecId": "12345",
+  "Subject": "Test",
+  "Priority": null,
+  "Owner": null
+}
+
+// With Strip Null Values ON:
+{
+  "RecId": "12345",
+  "Subject": "Test"
+}
+```
 
 ### Batching (for Create/Update/Delete/Get operations)
 

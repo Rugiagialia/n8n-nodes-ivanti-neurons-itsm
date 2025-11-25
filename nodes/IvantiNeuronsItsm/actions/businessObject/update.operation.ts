@@ -79,6 +79,13 @@ export const properties: INodeProperties[] = [
         },
         options: [
             {
+                displayName: 'Strip Null Values',
+                name: 'stripNull',
+                type: 'boolean',
+                default: false,
+                description: 'Whether to remove fields with null values from the output',
+            },
+            {
                 displayName: 'Ignore Type Conversion Errors',
                 name: 'ignoreConversionErrors',
                 type: 'boolean',

@@ -39,6 +39,28 @@ export const properties: INodeProperties[] = [
             },
         },
     },
+    {
+        displayName: 'Options',
+        name: 'options',
+        type: 'collection',
+        placeholder: 'Add Option',
+        default: {},
+        displayOptions: {
+            show: {
+                resource: ['search'],
+                operation: ['fullTextSearch'],
+            },
+        },
+        options: [
+            {
+                displayName: 'Strip Null Values',
+                name: 'stripNull',
+                type: 'boolean',
+                default: false,
+                description: 'Whether to remove fields with null values from the output',
+            },
+        ],
+    },
 ];
 
 export async function execute(

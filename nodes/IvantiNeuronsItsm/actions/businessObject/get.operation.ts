@@ -96,6 +96,13 @@ export const properties: INodeProperties[] = [
         },
         options: [
             {
+                displayName: 'Strip Null Values',
+                name: 'stripNull',
+                type: 'boolean',
+                default: false,
+                description: 'Whether to remove fields with null values from the output',
+            },
+            {
                 displayName: 'Items per Batch',
                 name: 'batchSize',
                 type: 'number',

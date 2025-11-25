@@ -51,7 +51,32 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
 
     // Check for context data from Ivanti (e.g. ISM_4000)
     if (error.context && error.context.data) {
-        const data = error.context.data;
+        let data = error.context.data;
+
+        // If data is a Buffer-like object (has numeric keys) or has type/data properties
+        const keys = Object.keys(data);
+        const isBufferLike = keys.length > 0 && keys.every((k, i) => k === i.toString());
+        const hasBufferStructure = data.type === 'Buffer' && Array.isArray(data.data);
+
+        if (isBufferLike || hasBufferStructure) {
+            try {
+                // Convert to byte array
+                let byteArray: number[];
+                if (isBufferLike) {
+                    // Keys are '0', '1', '2', etc - convert to array
+                    byteArray = keys.map(k => data[k]);
+                } else {
+                    // Has data.data property
+                    byteArray = data.data;
+                }
+
+                // Convert byte array to string
+                const dataStr = String.fromCharCode.apply(null, byteArray as any);
+                data = JSON.parse(dataStr);
+            } catch (e) {
+                // If parsing fails, keep as-is
+            }
+        }
 
         // Use the code/description as the main message
         if (data.description) {
@@ -60,8 +85,8 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
             message = `Error ${data.code}`;
         }
 
-        // If we don't have description yet, extract from data.message
-        if (!description && data.message) {
+        // Extract from data.message - prioritize this over generic error.description
+        if (data.message) {
             if (Array.isArray(data.message)) {
                 description = data.message.map((m: any) =>
                     typeof m === 'string' ? m : JSON.stringify(m)
@@ -76,7 +101,23 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
 
     // Check raw response body
     if (error.response && error.response.body) {
-        const body = error.response.body;
+        let body = error.response.body;
+
+        // If body is a string or looks like a buffer, try to parse it as JSON
+        if (typeof body === 'string') {
+            try {
+                body = JSON.parse(body);
+            } catch (e) {
+                // If parsing fails, keep as-is
+            }
+        } else if (body && typeof body === 'object' && typeof body.toString === 'function' && body.constructor && body.constructor.name === 'Buffer') {
+            try {
+                const bodyStr = body.toString('utf-8');
+                body = JSON.parse(bodyStr);
+            } catch (e) {
+                // If parsing fails, keep as-is
+            }
+        }
 
         // OData error format: { "error": { "code": "...", "message": { "lang": "en-US", "value": "..." } } }
         if (body.error && body.error.message && body.error.message.value) {
@@ -98,6 +139,27 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
         else if (body.Message) {
             if (!description) {
                 description = body.Message;
+            }
+        }
+        // Standard Ivanti error format: { "code": "...", "description": "...", "message": [...] }
+        else if (body.code || body.description || body.message) {
+            if (body.description) {
+                message = body.description;
+            } else if (body.code) {
+                message = `Error ${body.code}`;
+            }
+
+
+            if (!description && body.message) {
+                if (Array.isArray(body.message)) {
+                    description = body.message.map((m: any) =>
+                        typeof m === 'string' ? m : JSON.stringify(m)
+                    );
+                } else {
+                    description = typeof body.message === 'string'
+                        ? body.message
+                        : JSON.stringify(body.message);
+                }
             }
         }
         // Fallback to stringified body if it's an object
