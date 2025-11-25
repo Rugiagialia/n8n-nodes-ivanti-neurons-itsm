@@ -73,9 +73,9 @@ export const processAssignments = (
         const { name, type } = assignment;
         const { value } = assignment;
 
-        // If no type specified, just pass the value through (cast to any to satisfy IDataObject)
+        // If no type specified, just pass the value through
         if (!type) {
-            result[name] = value as any;
+            result[name] = value as IDataObject[string];
             continue;
         }
 
@@ -89,7 +89,7 @@ export const processAssignments = (
             ignoreConversionErrors,
         );
 
-        result[validated.name] = validated.value as any;
+        result[validated.name] = validated.value as IDataObject[string];
     }
 
     return result;

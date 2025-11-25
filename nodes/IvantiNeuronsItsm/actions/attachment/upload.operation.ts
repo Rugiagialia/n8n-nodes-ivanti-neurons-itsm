@@ -6,6 +6,7 @@ import {
     NodeApiError,
     JsonObject,
 } from 'n8n-workflow';
+import FormData from 'form-data';
 import { getIvantiErrorDetails } from '../../methods/helpers';
 
 export const properties: INodeProperties[] = [
@@ -112,8 +113,6 @@ export async function execute(
             const fileBuffer = Buffer.from(binaryData.data, 'base64');
 
             // Use FormData from form-data package (same as n8n HTTP Request node)
-            // @ts-expect-error - require is needed for form-data package
-            const FormData = require('form-data');
             const form = new FormData();
 
             form.append('AttachmentType', 'File');

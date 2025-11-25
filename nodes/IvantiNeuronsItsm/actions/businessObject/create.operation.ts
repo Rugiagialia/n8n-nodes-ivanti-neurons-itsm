@@ -150,7 +150,7 @@ export async function execute(
                     }
                 }
             } else {
-                const assignmentsData = this.getNodeParameter('assignments', i) as { assignments: Array<{ name: string; value: any; type?: string }> };
+                const assignmentsData = this.getNodeParameter('assignments', i) as { assignments: Array<{ name: string; value: string | number; type?: string }> };
                 const ignoreConversionErrors = options.ignoreConversionErrors as boolean;
 
                 if (assignmentsData && assignmentsData.assignments) {

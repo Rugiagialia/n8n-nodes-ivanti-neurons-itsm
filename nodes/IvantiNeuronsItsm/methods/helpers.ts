@@ -1,6 +1,6 @@
 import { IDataObject } from 'n8n-workflow';
 
-export const cleanODataResponse = (data: any): any => {
+export const cleanODataResponse = (data: IDataObject): IDataObject => {
     if (data && typeof data === 'object') {
         const cleaned: IDataObject = {};
         const keys = Object.keys(data).filter((key) => key !== '@odata.context');
@@ -88,7 +88,7 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
         // Extract from data.message - prioritize this over generic error.description
         if (data.message) {
             if (Array.isArray(data.message)) {
-                description = data.message.map((m: any) =>
+                description = data.message.map((m: unknown) =>
                     typeof m === 'string' ? m : JSON.stringify(m)
                 );
             } else {
@@ -152,7 +152,7 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
 
             if (!description && body.message) {
                 if (Array.isArray(body.message)) {
-                    description = body.message.map((m: any) =>
+                    description = body.message.map((m: unknown) =>
                         typeof m === 'string' ? m : JSON.stringify(m)
                     );
                 } else {
@@ -177,7 +177,7 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
 };
 
 // Backward compatibility: simple error message extractor
-export const getErrorMessage = (error: any): string => {
+export const getErrorMessage = (error: unknown): string => {
     const { message, description } = getIvantiErrorDetails(error);
     if (description) {
         if (Array.isArray(description)) {

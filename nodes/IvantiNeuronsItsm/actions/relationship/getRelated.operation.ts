@@ -82,7 +82,7 @@ export async function execute(
             });
 
             if (response.value && Array.isArray(response.value)) {
-                const relatedItems = response.value.map((item: any) => ({
+                const relatedItems = response.value.map((item: IDataObject) => ({
                     json: cleanODataResponse(item),
                     pairedItem: {
                         item: i,
