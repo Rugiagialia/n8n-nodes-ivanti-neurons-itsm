@@ -7,7 +7,7 @@ import {
     JsonObject,
 } from 'n8n-workflow';
 import FormData from 'form-data';
-import { getIvantiErrorDetails } from '../../methods/helpers';
+import { getIvantiErrorDetails, sleep } from '../../methods/helpers';
 
 export const properties: INodeProperties[] = [
     {
@@ -73,6 +73,46 @@ export const properties: INodeProperties[] = [
                 placeholder: 'Leave empty to use original filename',
                 description: 'Name for the uploaded file. If not specified, uses the original filename from the binary data.',
             },
+            {
+                displayName: 'Batching',
+                name: 'batching',
+                placeholder: 'Add Batching',
+                type: 'fixedCollection',
+                typeOptions: {
+                    multipleValues: false,
+                },
+                default: {
+                    batch: {},
+                },
+                options: [
+                    {
+                        displayName: 'Batching',
+                        name: 'batch',
+                        values: [
+                            {
+                                displayName: 'Items per Batch',
+                                name: 'batchSize',
+                                type: 'number',
+                                typeOptions: {
+                                    minValue: -1,
+                                },
+                                default: 50,
+                                description: 'Input will be split in batches to throttle requests. -1 for disabled. 0 will be treated as 1.',
+                            },
+                            {
+                                displayName: 'Batch Interval (ms)',
+                                name: 'batchInterval',
+                                type: 'number',
+                                typeOptions: {
+                                    minValue: 0,
+                                },
+                                default: 1000,
+                                description: 'Time (in milliseconds) between each batch of requests. 0 for disabled.',
+                            },
+                        ],
+                    },
+                ],
+            },
         ],
     },
 ];
@@ -89,6 +129,16 @@ export async function execute(
             const recId = this.getNodeParameter('recId', i) as string;
             const options = this.getNodeParameter('options', i, {}) as IDataObject;
             const userFileName = options.fileName as string || '';
+
+            const batching = (options.batching as IDataObject)?.batch as IDataObject | undefined;
+            let batchSize = -1;
+            let batchInterval = 0;
+
+            if (batching) {
+                batchSize = (batching.batchSize as number);
+                if (batchSize === 0) batchSize = 1;
+                batchInterval = (batching.batchInterval as number);
+            }
             const binaryPropertyName = this.getNodeParameter('binaryPropertyName', i) as string;
             const item = items[i];
 
@@ -152,6 +202,13 @@ export async function execute(
                 returnData.push({ json: { success: false, message: 'Unexpected response format', response: responseBody } });
             }
 
+            // Apply batching delay before processing next item (HTTP Request node pattern)
+            if (i > 0 && batchSize >= 0 && batchInterval > 0) {
+                if (i % batchSize === 0) {
+                    await sleep(batchInterval);
+                }
+            }
+
         } catch (error) {
             const { message, description } = getIvantiErrorDetails(error);
 
@@ -173,3 +230,5 @@ export async function execute(
 
     return returnData;
 }
+
+

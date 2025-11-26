@@ -284,10 +284,14 @@ export async function execute(
     // Get batching options (outer loop - throttling incoming items)
     const options = this.getNodeParameter('options', 0, {}) as IDataObject;
     const batching = (options.batching as IDataObject)?.batch as IDataObject | undefined;
-    const batchSize = batching?.batchSize !== undefined && (batching.batchSize as number) > 0
-        ? (batching.batchSize as number)
-        : 1;
-    const batchInterval = batching?.batchInterval !== undefined ? (batching.batchInterval as number) : 1000;
+    let batchSize = -1;
+    let batchInterval = 0;
+
+    if (batching) {
+        batchSize = (batching.batchSize as number);
+        if (batchSize === 0) batchSize = 1;
+        batchInterval = (batching.batchInterval as number);
+    }
 
     for (let i = 0; i < items.length; i++) {
         // Apply item batching delay (outer loop - throttling incoming items)
@@ -355,8 +359,13 @@ export async function execute(
                 let pageCount = 0;
 
                 const paginationOptions = (options.pagination as IDataObject)?.pagination as IDataObject | undefined;
-                const pagesPerBatch = paginationOptions?.pagesPerBatch !== undefined ? (paginationOptions.pagesPerBatch as number) : 10;
-                const paginationInterval = paginationOptions?.paginationInterval !== undefined ? (paginationOptions.paginationInterval as number) : 100;
+                let pagesPerBatch = -1;
+                let paginationInterval = 0;
+
+                if (paginationOptions) {
+                    pagesPerBatch = paginationOptions.pagesPerBatch !== undefined ? (paginationOptions.pagesPerBatch as number) : 10;
+                    paginationInterval = paginationOptions.paginationInterval !== undefined ? (paginationOptions.paginationInterval as number) : 100;
+                }
                 const shouldDelayPagination = pagesPerBatch !== -1 && paginationInterval > 0;
 
                 while (hasMore) {
@@ -425,8 +434,13 @@ export async function execute(
                     let pageCount = 0;
 
                     const paginationOptions = (options.pagination as IDataObject)?.pagination as IDataObject | undefined;
-                    const pagesPerBatch = paginationOptions?.pagesPerBatch !== undefined ? (paginationOptions.pagesPerBatch as number) : 10;
-                    const paginationInterval = paginationOptions?.paginationInterval !== undefined ? (paginationOptions.paginationInterval as number) : 100;
+                    let pagesPerBatch = -1;
+                    let paginationInterval = 0;
+
+                    if (paginationOptions) {
+                        pagesPerBatch = paginationOptions.pagesPerBatch !== undefined ? (paginationOptions.pagesPerBatch as number) : 10;
+                        paginationInterval = paginationOptions.paginationInterval !== undefined ? (paginationOptions.paginationInterval as number) : 100;
+                    }
                     const shouldDelayPagination = pagesPerBatch !== -1 && paginationInterval > 0;
 
                     while (remaining > 0) {

@@ -5,7 +5,12 @@
 
 This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.com/products/ivanti-neurons-for-itsm) (formerly Ivanti Service Manager). It allows you to interact with Ivanti's ITSM platform to manage business objects, relationships, attachments, and perform advanced searches.
 
-## What's New in v0.3.5
+## What's New in v0.4.0
+
+- 🎨 **Improved Batching & Pagination UX** - New collapsible "Batching" and "Pagination" groups for cleaner configuration
+- ⚡ **Enhanced Throttling** - Standardized batching logic across all operations (Create, Update, Delete, Get, Search)
+
+## Previous Updates (v0.3.5)
 
 - 🚑 **Compatibility Fix** - Resolved initialization error on older n8n versions by reverting credentials implementation to v0.2.0 standard
 - 🧹 **Strip Null Values Option** - New option to remove null values from output for cleaner data processing
@@ -204,16 +209,16 @@ Remove fields with null values from the output for cleaner data processing:
 ```
 
 ### Batching (for Create/Update/Delete/Get operations)
-
-Control request throttling to avoid API rate limits:
-
+ 
+Control request throttling to avoid API rate limits using the new **Batching** fixed collection:
+ 
 - **Items per Batch** - Number of items to process before pausing (default: 50, -1 to disable)
 - **Batch Interval** - Milliseconds to wait between batches (default: 1000ms)
-
-### Pagination (for Get Many operations)
-
-Control pagination behavior for large datasets:
-
+ 
+### Pagination (for Get Many & Search operations)
+ 
+Control pagination behavior for large datasets using the new **Pagination** fixed collection:
+ 
 - **Pages per Batch** - Number of pages to fetch before pausing (default: 10, -1 to disable)
 - **Pagination Interval** - Milliseconds to wait between page batches (default: 100ms)
 

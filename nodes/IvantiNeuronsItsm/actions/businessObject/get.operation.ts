@@ -153,11 +153,14 @@ export async function execute(
     const returnData: INodeExecutionData[] = [];
     const options = this.getNodeParameter('options', 0, {}) as IDataObject;
     const batching = (options.batching as IDataObject)?.batch as IDataObject | undefined;
-    // Default batch size to 1 if it's set to 0
-    const batchSize = batching?.batchSize !== undefined && (batching.batchSize as number) > 0
-        ? (batching.batchSize as number)
-        : 1;
-    const batchInterval = batching?.batchInterval !== undefined ? (batching.batchInterval as number) : 1000;
+    let batchSize = -1;
+    let batchInterval = 0;
+
+    if (batching) {
+        batchSize = (batching.batchSize as number);
+        if (batchSize === 0) batchSize = 1;
+        batchInterval = (batching.batchInterval as number);
+    }
 
     for (let i = 0; i < items.length; i++) {
         try {
