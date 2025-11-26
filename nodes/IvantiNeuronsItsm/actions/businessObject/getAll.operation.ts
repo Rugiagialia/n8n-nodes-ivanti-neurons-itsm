@@ -192,24 +192,84 @@ export const properties: INodeProperties[] = [
                 description: 'OData filter expression (e.g. Status eq \'Active\', Owner eq \'$NULL\')',
             },
             {
-                displayName: 'Pages per Batch',
-                name: 'pagesPerBatch',
-                type: 'number',
+                displayName: 'Batching',
+                name: 'batching',
+                placeholder: 'Add Batching',
+                type: 'fixedCollection',
                 typeOptions: {
-                    minValue: -1,
+                    multipleValues: false,
                 },
-                default: 10,
-                description: 'Number of pages to fetch before pausing. -1 to disable delays.',
+                default: {
+                    batch: {},
+                },
+                options: [
+                    {
+                        displayName: 'Batching',
+                        name: 'batch',
+                        values: [
+                            {
+                                displayName: 'Items per Batch',
+                                name: 'batchSize',
+                                type: 'number',
+                                typeOptions: {
+                                    minValue: -1,
+                                },
+                                default: 50,
+                                description: 'Input will be split in batches to throttle requests. -1 for disabled. 0 will be treated as 1.',
+                            },
+                            {
+                                displayName: 'Batch Interval (ms)',
+                                name: 'batchInterval',
+                                type: 'number',
+                                typeOptions: {
+                                    minValue: 0,
+                                },
+                                default: 1000,
+                                description: 'Time (in milliseconds) between each batch of requests. 0 for disabled.',
+                            },
+                        ],
+                    },
+                ],
             },
             {
-                displayName: 'Pagination Interval (Ms)',
-                name: 'paginationInterval',
-                type: 'number',
+                displayName: 'Pagination',
+                name: 'pagination',
+                placeholder: 'Add Pagination',
+                type: 'fixedCollection',
                 typeOptions: {
-                    minValue: 0,
+                    multipleValues: false,
                 },
-                default: 100,
-                description: 'Time (in milliseconds) between each batch of page requests. 0 for disabled.',
+                default: {
+                    pagination: {},
+                },
+                options: [
+                    {
+                        displayName: 'Pagination',
+                        name: 'pagination',
+                        values: [
+                            {
+                                displayName: 'Pages per Batch',
+                                name: 'pagesPerBatch',
+                                type: 'number',
+                                typeOptions: {
+                                    minValue: -1,
+                                },
+                                default: 10,
+                                description: 'Number of pages to fetch before pausing. -1 to disable delays.',
+                            },
+                            {
+                                displayName: 'Pagination Interval (ms)',
+                                name: 'paginationInterval',
+                                type: 'number',
+                                typeOptions: {
+                                    minValue: 0,
+                                },
+                                default: 100,
+                                description: 'Time (in milliseconds) between each batch of page requests. 0 for disabled.',
+                            },
+                        ],
+                    },
+                ],
             },
         ],
     },
@@ -221,7 +281,22 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
     const returnData: INodeExecutionData[] = [];
 
+    // Get batching options (outer loop - throttling incoming items)
+    const options = this.getNodeParameter('options', 0, {}) as IDataObject;
+    const batching = (options.batching as IDataObject)?.batch as IDataObject | undefined;
+    const batchSize = batching?.batchSize !== undefined && (batching.batchSize as number) > 0
+        ? (batching.batchSize as number)
+        : 1;
+    const batchInterval = batching?.batchInterval !== undefined ? (batching.batchInterval as number) : 1000;
+
     for (let i = 0; i < items.length; i++) {
+        // Apply item batching delay (outer loop - throttling incoming items)
+        if (i > 0 && batchSize >= 0 && batchInterval > 0) {
+            if (i % batchSize === 0) {
+                await sleep(batchInterval);
+            }
+        }
+
         try {
             const businessObject = this.getNodeParameter('businessObject', i) as string;
             const objectName = `${businessObject}s`;
@@ -279,8 +354,9 @@ export async function execute(
                 let hasMore = true;
                 let pageCount = 0;
 
-                const pagesPerBatch = (options.pagesPerBatch as number) !== undefined ? (options.pagesPerBatch as number) : 10;
-                const paginationInterval = (options.paginationInterval as number) !== undefined ? (options.paginationInterval as number) : 100;
+                const paginationOptions = (options.pagination as IDataObject)?.pagination as IDataObject | undefined;
+                const pagesPerBatch = paginationOptions?.pagesPerBatch !== undefined ? (paginationOptions.pagesPerBatch as number) : 10;
+                const paginationInterval = paginationOptions?.paginationInterval !== undefined ? (paginationOptions.paginationInterval as number) : 100;
                 const shouldDelayPagination = pagesPerBatch !== -1 && paginationInterval > 0;
 
                 while (hasMore) {
@@ -348,8 +424,9 @@ export async function execute(
                     let remaining = limit;
                     let pageCount = 0;
 
-                    const pagesPerBatch = (options.pagesPerBatch as number) !== undefined ? (options.pagesPerBatch as number) : 10;
-                    const paginationInterval = (options.paginationInterval as number) !== undefined ? (options.paginationInterval as number) : 100;
+                    const paginationOptions = (options.pagination as IDataObject)?.pagination as IDataObject | undefined;
+                    const pagesPerBatch = paginationOptions?.pagesPerBatch !== undefined ? (paginationOptions.pagesPerBatch as number) : 10;
+                    const paginationInterval = paginationOptions?.paginationInterval !== undefined ? (paginationOptions.paginationInterval as number) : 100;
                     const shouldDelayPagination = pagesPerBatch !== -1 && paginationInterval > 0;
 
                     while (remaining > 0) {

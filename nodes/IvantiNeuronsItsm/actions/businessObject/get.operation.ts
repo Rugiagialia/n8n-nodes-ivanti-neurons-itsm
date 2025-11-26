@@ -103,24 +103,44 @@ export const properties: INodeProperties[] = [
                 description: 'Whether to remove fields with null values from the output',
             },
             {
-                displayName: 'Items per Batch',
-                name: 'batchSize',
-                type: 'number',
+                displayName: 'Batching',
+                name: 'batching',
+                placeholder: 'Add Batching',
+                type: 'fixedCollection',
                 typeOptions: {
-                    minValue: -1,
+                    multipleValues: false,
                 },
-                default: 50,
-                description: 'Input will be split in batches to throttle requests. -1 for disabled. 0 will be treated as 1.',
-            },
-            {
-                displayName: 'Batch Interval (Ms)',
-                name: 'batchInterval',
-                type: 'number',
-                typeOptions: {
-                    minValue: 0,
+                default: {
+                    batch: {},
                 },
-                default: 1000,
-                description: 'Time (in milliseconds) between each batch of requests. 0 for disabled.',
+                options: [
+                    {
+                        displayName: 'Batching',
+                        name: 'batch',
+                        values: [
+                            {
+                                displayName: 'Items per Batch',
+                                name: 'batchSize',
+                                type: 'number',
+                                typeOptions: {
+                                    minValue: -1,
+                                },
+                                default: 50,
+                                description: 'Input will be split in batches to throttle requests. -1 for disabled. 0 will be treated as 1.',
+                            },
+                            {
+                                displayName: 'Batch Interval (ms)',
+                                name: 'batchInterval',
+                                type: 'number',
+                                typeOptions: {
+                                    minValue: 0,
+                                },
+                                default: 1000,
+                                description: 'Time (in milliseconds) between each batch of requests. 0 for disabled.',
+                            },
+                        ],
+                    },
+                ],
             },
         ],
     },
@@ -132,10 +152,12 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
     const returnData: INodeExecutionData[] = [];
     const options = this.getNodeParameter('options', 0, {}) as IDataObject;
-    const batchSize = (options.batchSize as number) !== undefined ? (options.batchSize as number) : -1;
-    const batchInterval = (options.batchInterval as number) !== undefined ? (options.batchInterval as number) : 1000;
-
-    const effectiveBatchSize = batchSize !== -1 ? Math.max(1, batchSize) : items.length;
+    const batching = (options.batching as IDataObject)?.batch as IDataObject | undefined;
+    // Default batch size to 1 if it's set to 0
+    const batchSize = batching?.batchSize !== undefined && (batching.batchSize as number) > 0
+        ? (batching.batchSize as number)
+        : 1;
+    const batchInterval = batching?.batchInterval !== undefined ? (batching.batchInterval as number) : 1000;
 
     for (let i = 0; i < items.length; i++) {
         try {
@@ -207,8 +229,11 @@ export async function execute(
             });
         }
 
-        if (batchSize !== -1 && batchInterval > 0 && (i + 1) % effectiveBatchSize === 0 && (i + 1) < items.length) {
-            await sleep(batchInterval);
+        // Apply batching delay before processing (HTTP Request node pattern)
+        if (i > 0 && batchSize >= 0 && batchInterval > 0) {
+            if (i % batchSize === 0) {
+                await sleep(batchInterval);
+            }
         }
     }
 
