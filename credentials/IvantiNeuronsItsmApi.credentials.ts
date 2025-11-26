@@ -9,7 +9,8 @@ export class IvantiNeuronsItsmApi implements ICredentialType {
     name = 'ivantiNeuronsItsmApi';
     displayName = 'Ivanti Neurons for ITSM API';
     documentationUrl = 'https://help.ivanti.com/ht/help/en_US/ISM/2017.3/Content/Configure/API/Authentication.htm';
-    icon = 'file:ivanti.svg' as any;
+    // @ts-ignore
+    icon = 'node:n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm';
     properties: INodeProperties[] = [
         {
             displayName: 'Tenant URL',
@@ -33,7 +34,6 @@ export class IvantiNeuronsItsmApi implements ICredentialType {
             type: 'boolean',
             default: false,
             description: 'Whether to connect even if SSL certificate validation is not possible (e.g. self-signed certificate)',
-            typeOptions: { password: true },
         },
     ];
 
