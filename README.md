@@ -5,8 +5,9 @@
 
 This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.com/products/ivanti-neurons-for-itsm) (formerly Ivanti Service Manager). It allows you to interact with Ivanti's ITSM platform to manage business objects, relationships, attachments, and perform advanced searches.
 
-## What's New in v0.3.0
+## What's New in v0.3.5
 
+- 🚑 **Compatibility Fix** - Resolved initialization error on older n8n versions by reverting credentials implementation to v0.2.0 standard
 - 🧹 **Strip Null Values Option** - New option to remove null values from output for cleaner data processing
 - 🐛 **Improved Error Handling** - Better parsing of Ivanti API errors, including support for binary/attachment operation errors
 
