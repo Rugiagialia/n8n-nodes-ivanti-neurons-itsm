@@ -16,7 +16,7 @@ export class IvantiNeuronsItsm implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Ivanti Neurons for ITSM',
         name: 'ivantiNeuronsItsm',
-        icon: { light: 'file:ivanti.light.svg', dark: 'file:ivanti.dark.svg' },
+        icon: 'file:ivanti.svg',
         group: ['transform'],
         version: 1,
         subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
