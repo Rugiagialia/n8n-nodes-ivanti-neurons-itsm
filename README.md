@@ -5,7 +5,14 @@
 
 This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.com/products/ivanti-neurons-for-itsm) (formerly Ivanti Service Manager). It allows you to interact with Ivanti's ITSM platform to manage business objects, relationships, attachments, and perform advanced searches.
 
-## What's New in v0.4.0
+## What's New in v0.5.0
+
+- ⚡ **New Trigger Node** - Start workflows when business objects are created or updated in Ivanti Neurons ITSM
+- 🔄 **Polling Support** - Configurable polling intervals to check for changes
+- 🧹 **Data Cleaning** - Alphabetical key sorting and optional null value stripping for cleaner output
+- 🧪 **Manual Testing Mode** - Easily test triggers by fetching the most recent record
+
+## Previous Updates (v0.4.0)
 
 - 🎨 **Improved Batching & Pagination UX** - New collapsible "Batching" and "Pagination" groups for cleaner configuration
 - ⚡ **Enhanced Throttling** - Standardized batching logic across all operations (Create, Update, Delete, Get, Search)
@@ -62,6 +69,15 @@ Upload, download, and manage file attachments:
 - **Upload** - Upload files to business objects (Incidents, Changes, etc.)
 - **Get** - Download attachment files by ID
 - **Delete** - Remove attachments
+
+### ⚡ Trigger Operations
+
+Start workflows based on events in Ivanti Neurons ITSM:
+
+- **Object Created** - Trigger when a new business object is created (e.g., new Incident)
+- **Object Updated** - Trigger when an existing business object is modified
+- **Polling** - Configurable polling interval (e.g., every minute, every hour)
+- **Filtering** - Optional OData filters to only trigger on specific records (e.g., only High Priority Incidents)
 
 ### 🔍 Search Operations
 
@@ -179,6 +195,18 @@ Resource: Search
 Operation: Execute Saved Search
 Saved Search: "My Active Incidents" (from dropdown)
 Return All: true
+```
+
+### Example 5: Trigger on New Incident
+
+```javascript
+Node: Ivanti Neurons for ITSM Trigger
+Trigger On: Object Created
+Business Object Name: Incident
+Poll Times: Every Minute
+Options:
+  - Filter: "Priority eq '1'"
+  - Strip Null Values: true
 ```
 
 ## Configuration Options
