@@ -34,7 +34,8 @@
 			"dist/credentials/IvantiNeuronsItsmApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/IvantiNeuronsItsm/IvantiNeuronsItsm.node.js"
+			"dist/nodes/IvantiNeuronsItsm/IvantiNeuronsItsm.node.js",
+			"dist/nodes/IvantiNeuronsItsm/IvantiNeuronsItsmTrigger.node.js"
 		]
 	},
 	"devDependencies": {
