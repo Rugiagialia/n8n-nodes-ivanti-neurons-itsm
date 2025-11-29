@@ -74,8 +74,16 @@ Upload, download, and manage file attachments:
 
 Start workflows based on events in Ivanti Neurons ITSM:
 
-- **Object Created** - Trigger when a new business object is created (e.g., new Incident)
-- **Object Updated** - Trigger when an existing business object is modified
+- **Object Created**: Triggers when a new object is created.
+- **Object Updated**: Triggers when an object is modified.
+  > **⚠️ Important**: Due to how Ivanti handles timestamps during manual object creation (timestamps are set at different stages of the creation process), the "Object Updated" trigger will also catch newly created objects. This happens because `LastModDateTime` is updated when the object is saved, which can be 1-3 minutes after `CreatedDateTime` is initially set.
+  >
+  > **Recommendation**: Use the **Filter** field (visible when "Object Updated" is selected) to exclude unwanted items. For example, filter by specific status changes that only happen on real updates.
+
+### Filtering
+- **Filter**: OData filter expression (e.g., `Status eq 'Active'`).
+  - For **Object Updated**: The Filter field appears as a main property.
+  - For **Object Created**: The Filter field is available under "Options".
 - **Polling** - Configurable polling interval (e.g., every minute, every hour)
 - **Filtering** - Optional OData filters to only trigger on specific records (e.g., only High Priority Incidents)
 
@@ -317,6 +325,40 @@ npm run lint:fix
 Increase batch intervals:
 - Items per Batch: 25
 - Batch Interval: 2000ms
+
+### Package upgrade errors (Class not found)
+
+If you encounter "Class could not be found" errors after upgrading, especially in multi-worker setups:
+
+**Steps to fix:**
+
+1. **Uninstall via n8n UI**
+   - Go to Settings → Community Nodes
+   - Remove `n8n-nodes-ivanti-neurons-itsm`
+
+2. **Clean installation on all environments**
+   
+   For **main instance**:
+   ```bash
+   cd ~/.n8n/nodes
+   npm uninstall n8n-nodes-ivanti-neurons-itsm
+   ```
+
+   For **each worker** (if using workers):
+   ```bash
+   cd ~/.n8n/nodes
+   npm uninstall n8n-nodes-ivanti-neurons-itsm
+   ```
+
+3. **Reinstall via n8n UI**
+   - Go to Settings → Community Nodes
+   - Install `n8n-nodes-ivanti-neurons-itsm`
+
+4. **Restart all instances**
+   - Restart main n8n instance
+   - Restart all worker instances
+
+> **Note**: This issue can occur when npm caches become stale during upgrades, particularly in distributed setups. It may also happen after introducing new node types (like the trigger node) to an existing package. Manual cleanup ensures a fresh installation.
 
 ## Contributing
 

@@ -81,6 +81,29 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                 ],
             },
             {
+                displayName: 'This trigger also catches newly created objects due to Ivanti timestamp behavior. We recommend using a Filter to exclude unwanted items.',
+                name: 'objectUpdatedNotice',
+                type: 'notice',
+                default: '',
+                displayOptions: {
+                    show: {
+                        triggerOn: ['objectUpdated'],
+                    },
+                },
+            },
+            {
+                displayName: 'Filter',
+                name: 'filter',
+                type: 'string',
+                default: '',
+                description: 'OData filter expression (e.g. Status eq \'Active\'). Recommended to exclude unwanted updates.',
+                displayOptions: {
+                    show: {
+                        triggerOn: ['objectUpdated'],
+                    },
+                },
+            },
+            {
                 displayName: 'Options',
                 name: 'options',
                 type: 'collection',
@@ -93,6 +116,11 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                         type: 'string',
                         default: '',
                         description: 'OData filter expression (e.g. Status eq \'Active\', Owner eq \'$NULL\')',
+                        displayOptions: {
+                            show: {
+                                '/triggerOn': ['objectCreated'],
+                            },
+                        },
                     },
                     {
                         displayName: 'Strip Null Values',
@@ -188,8 +216,15 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         filterParts.push(`${dateField} gt ${lastTimeCheckedUTC}`);
 
         // Add user filter if provided
-        if (options.filter) {
-            filterParts.push(`(${options.filter})`);
+        let filter = '';
+        if (triggerOn === 'objectUpdated') {
+            filter = this.getNodeParameter('filter', '') as string;
+        } else {
+            filter = options.filter as string || '';
+        }
+
+        if (filter) {
+            filterParts.push(`(${filter})`);
         }
 
         qs['$filter'] = filterParts.join(' and ');
