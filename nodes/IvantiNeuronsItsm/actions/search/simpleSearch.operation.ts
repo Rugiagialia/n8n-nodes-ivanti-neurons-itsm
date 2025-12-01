@@ -232,6 +232,7 @@ export const properties: INodeProperties[] = [
                                 description: 'Number of pages to fetch before pausing. -1 to disable delays.',
                             },
                             {
+                                // eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
                                 displayName: 'Pagination Interval (ms)',
                                 name: 'paginationInterval',
                                 type: 'number',

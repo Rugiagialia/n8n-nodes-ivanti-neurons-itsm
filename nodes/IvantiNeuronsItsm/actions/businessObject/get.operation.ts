@@ -129,6 +129,7 @@ export const properties: INodeProperties[] = [
                                 description: 'Input will be split in batches to throttle requests. -1 for disabled. 0 will be treated as 1.',
                             },
                             {
+                                // eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
                                 displayName: 'Batch Interval (ms)',
                                 name: 'batchInterval',
                                 type: 'number',

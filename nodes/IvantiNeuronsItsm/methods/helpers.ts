@@ -37,6 +37,7 @@ export interface IvantiErrorDetails {
     description?: string | string[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
     let message = 'Request failed';
     let description: string | string[] | undefined = undefined;

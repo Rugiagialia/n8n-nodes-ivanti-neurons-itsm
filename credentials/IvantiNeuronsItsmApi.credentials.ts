@@ -9,7 +9,9 @@ export class IvantiNeuronsItsmApi implements ICredentialType {
     name = 'ivantiNeuronsItsmApi';
     displayName = 'Ivanti Neurons for ITSM API';
     documentationUrl = 'https://help.ivanti.com/ht/help/en_US/ISM/2017.3/Content/Configure/API/Authentication.htm';
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
+    // eslint-disable-next-line @n8n/community-nodes/icon-validation
     icon = 'node:n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsm';
     properties: INodeProperties[] = [
         {
@@ -28,6 +30,7 @@ export class IvantiNeuronsItsmApi implements ICredentialType {
             },
             default: '',
         },
+        // eslint-disable-next-line @n8n/community-nodes/credential-password-field
         {
             displayName: 'Ignore SSL Issues',
             name: 'allowUnauthorizedCerts',

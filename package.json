@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-ivanti-neurons-itsm",
-	"version": "0.5.2",
+	"version": "0.5.3",
 	"description": "n8n community node for Ivanti Neurons for ITSM. Manage Business Objects, Relationships, and Attachments.",
 	"license": "MIT",
 	"homepage": "https://github.com/Rugiagialia/n8n-nodes-ivanti-neurons-itsm",

@@ -33,7 +33,9 @@ function stripNullValues(obj: IDataObject): IDataObject {
     return result;
 }
 
+// eslint-disable-next-line @n8n/community-nodes/node-usable-as-tool
 export class IvantiNeuronsItsmTrigger implements INodeType {
+    usableAsTool = false;
     description: INodeTypeDescription = {
         displayName: 'Ivanti Neurons for ITSM Trigger',
         name: 'ivantiNeuronsItsmTrigger',
