@@ -6,7 +6,8 @@ export const cleanODataResponse = (data: IDataObject): IDataObject => {
         const keys = Object.keys(data).filter((key) => key !== '@odata.context');
 
         // Sort keys alphabetically
-        keys.sort();
+        // Sort keys alphabetically (case-insensitive)
+        keys.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
         // Ensure RecId is first if it exists
         if (keys.includes('RecId')) {
