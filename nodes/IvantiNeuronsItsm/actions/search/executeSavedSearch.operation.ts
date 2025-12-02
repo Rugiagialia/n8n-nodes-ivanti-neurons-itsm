@@ -130,6 +130,13 @@ export const properties: INodeProperties[] = [
                 description: 'Whether to remove fields with null values from the output',
             },
             {
+                displayName: 'Sort Output Keys',
+                name: 'sortOutput',
+                type: 'boolean',
+                default: true,
+                description: 'Whether to sort the output keys alphabetically',
+            },
+            {
                 displayName: 'Filter',
                 name: 'filter',
                 type: 'string',
@@ -194,7 +201,8 @@ export async function execute(
             const savedSearchId = this.getNodeParameter('savedSearchId', i) as string;
             const [savedSearchName, actionId] = savedSearchId.split('|');
             const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-            const options = this.getNodeParameter('options', i) as IDataObject;
+            const options = this.getNodeParameter('options', i, {}) as IDataObject;
+            const sortOutput = options.sortOutput !== false;
             const useSort = this.getNodeParameter('useSort', i) as boolean;
 
             const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
@@ -266,7 +274,7 @@ export async function execute(
 
                 if (allItems.length > 0) {
                     allItems.forEach((item) => returnData.push({
-                        json: cleanODataResponse(item),
+                        json: cleanODataResponse(item, sortOutput),
                         pairedItem: { item: i },
                     }));
                 }
@@ -285,13 +293,13 @@ export async function execute(
 
                     if (response.value && Array.isArray(response.value)) {
                         (response.value as IDataObject[]).forEach((item) => returnData.push({
-                            json: cleanODataResponse(item),
+                            json: cleanODataResponse(item, sortOutput),
                             pairedItem: { item: i },
                         }));
                     } else if (response && Object.keys(response).length > 0 && response.value !== undefined) {
                         // Only push if response is not empty and not just metadata
                         returnData.push({
-                            json: cleanODataResponse(response),
+                            json: cleanODataResponse(response, sortOutput),
                             pairedItem: { item: i },
                         });
                     }

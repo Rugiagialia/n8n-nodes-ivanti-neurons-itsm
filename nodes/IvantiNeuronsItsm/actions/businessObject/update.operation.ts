@@ -86,6 +86,13 @@ export const properties: INodeProperties[] = [
                 description: 'Whether to remove fields with null values from the output',
             },
             {
+                displayName: 'Sort Output Keys',
+                name: 'sortOutput',
+                type: 'boolean',
+                default: true,
+                description: 'Whether to sort the output keys alphabetically',
+            },
+            {
                 displayName: 'Ignore Type Conversion Errors',
                 name: 'ignoreConversionErrors',
                 type: 'boolean',
@@ -165,6 +172,8 @@ export async function execute(
             const objectName = `${businessObject}s`;
             const recId = this.getNodeParameter('recId', i) as string;
             const mode = this.getNodeParameter('mode', i) as string;
+            const itemOptions = this.getNodeParameter('options', i, {}) as IDataObject;
+            const sortOutput = itemOptions.sortOutput !== false;
             let body: IDataObject = {};
 
             if (mode === 'json') {
@@ -200,7 +209,12 @@ export async function execute(
                 json: true,
                 skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
             });
-            returnData.push({ json: cleanODataResponse(response) });
+            returnData.push({
+                json: cleanODataResponse(response, sortOutput),
+                pairedItem: {
+                    item: i,
+                },
+            });
 
         } catch (error) {
             const { message, description } = getIvantiErrorDetails(error);

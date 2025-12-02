@@ -199,6 +199,13 @@ export const properties: INodeProperties[] = [
                 description: 'Whether to remove fields with null values from the output',
             },
             {
+                displayName: 'Sort Output Keys',
+                name: 'sortOutput',
+                type: 'boolean',
+                default: true,
+                description: 'Whether to sort the output keys alphabetically',
+            },
+            {
                 displayName: 'Filter',
                 name: 'filter',
                 type: 'string',
@@ -262,7 +269,8 @@ export async function execute(
             const objectName = `${businessObject}s`;
             const searchText = this.getNodeParameter('searchText', i) as string;
             const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-            const options = this.getNodeParameter('options', i) as IDataObject;
+            const options = this.getNodeParameter('options', i, {}) as IDataObject;
+            const sortOutput = options.sortOutput !== false;
             const useSelect = this.getNodeParameter('useSelect', i) as boolean;
             const useSort = this.getNodeParameter('useSort', i) as boolean;
 
@@ -360,7 +368,7 @@ export async function execute(
                 }
 
                 allItems.forEach((item) => returnData.push({
-                    json: cleanODataResponse(item),
+                    json: cleanODataResponse(item, sortOutput),
                     pairedItem: {
                         item: i,
                     },
@@ -381,7 +389,7 @@ export async function execute(
 
                     if (response.value && Array.isArray(response.value)) {
                         (response.value as IDataObject[]).forEach((item) => returnData.push({
-                            json: cleanODataResponse(item),
+                            json: cleanODataResponse(item, sortOutput),
                             pairedItem: { item: i },
                         }));
                     }

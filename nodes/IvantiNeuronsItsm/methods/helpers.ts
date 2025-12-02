@@ -1,13 +1,14 @@
 import { IDataObject } from 'n8n-workflow';
 
-export const cleanODataResponse = (data: IDataObject): IDataObject => {
+export const cleanODataResponse = (data: IDataObject, sortOutput: boolean = true): IDataObject => {
     if (data && typeof data === 'object') {
         const cleaned: IDataObject = {};
         const keys = Object.keys(data).filter((key) => key !== '@odata.context');
 
-        // Sort keys alphabetically
-        // Sort keys alphabetically (case-insensitive)
-        keys.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+        if (sortOutput) {
+            // Sort keys alphabetically (case-insensitive)
+            keys.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+        }
 
         // Ensure RecId is first if it exists
         if (keys.includes('RecId')) {
@@ -84,7 +85,7 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
         if (data.description) {
             message = data.description;
         } else if (data.code) {
-            message = `Error ${data.code}`;
+            message = `Error ${data.code} `;
         }
 
         // Extract from data.message - prioritize this over generic error.description
@@ -148,7 +149,7 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
             if (body.description) {
                 message = body.description;
             } else if (body.code) {
-                message = `Error ${body.code}`;
+                message = `Error ${body.code} `;
             }
 
 

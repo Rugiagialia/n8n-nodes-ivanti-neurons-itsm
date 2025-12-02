@@ -103,6 +103,13 @@ export const properties: INodeProperties[] = [
                 description: 'Whether to remove fields with null values from the output',
             },
             {
+                displayName: 'Sort Output Keys',
+                name: 'sortOutput',
+                type: 'boolean',
+                default: true,
+                description: 'Whether to sort the output keys alphabetically',
+            },
+            {
                 displayName: 'Batching',
                 name: 'batching',
                 placeholder: 'Add Batching',
@@ -153,6 +160,7 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
     const returnData: INodeExecutionData[] = [];
     const options = this.getNodeParameter('options', 0, {}) as IDataObject;
+    const sortOutput = options.sortOutput !== false;
     const batching = (options.batching as IDataObject)?.batch as IDataObject | undefined;
     let batchSize = -1;
     let batchInterval = 0;
@@ -200,7 +208,7 @@ export async function execute(
                 });
 
                 if (response.value && Array.isArray(response.value) && response.value.length > 0) {
-                    returnData.push({ json: cleanODataResponse(response.value[0]) as IDataObject });
+                    returnData.push({ json: cleanODataResponse(response.value[0], sortOutput) as IDataObject });
                 } else {
                     throw new Error(`Item with ID '${recId}' not found.`);
                 }
@@ -212,7 +220,7 @@ export async function execute(
                     json: true,
                     skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
                 });
-                returnData.push({ json: cleanODataResponse(response) });
+                returnData.push({ json: cleanODataResponse(response, sortOutput) });
             }
 
         } catch (error) {

@@ -86,6 +86,13 @@ export const properties: INodeProperties[] = [
                 description: 'Whether to remove fields with null values from the output',
             },
             {
+                displayName: 'Sort Output Keys',
+                name: 'sortOutput',
+                type: 'boolean',
+                default: true,
+                description: 'Whether to sort the output keys alphabetically',
+            },
+            {
                 displayName: 'Ignore Type Conversion Errors',
                 name: 'ignoreConversionErrors',
                 type: 'boolean',
@@ -163,6 +170,8 @@ export async function execute(
         try {
             const businessObject = this.getNodeParameter('businessObject', i) as string;
             const objectName = `${businessObject}s`;
+            const options = this.getNodeParameter('options', i, {}) as IDataObject;
+            const sortOutput = options.sortOutput !== false;
             const mode = this.getNodeParameter('mode', i) as string;
             let body: IDataObject = {};
 
@@ -191,14 +200,21 @@ export async function execute(
 
             const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
             const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
-            const response = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', {
-                method: 'POST',
+            const requestOptions = {
+                method: 'POST' as const,
                 url: `${baseUrl}/api/odata/businessobject/${objectName}`,
                 body,
                 json: true,
                 skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
+            };
+            const response = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', requestOptions);
+
+            returnData.push({
+                json: cleanODataResponse(response, sortOutput),
+                pairedItem: {
+                    item: i,
+                },
             });
-            returnData.push({ json: cleanODataResponse(response) });
 
         } catch (error) {
             const { message, description } = getIvantiErrorDetails(error);

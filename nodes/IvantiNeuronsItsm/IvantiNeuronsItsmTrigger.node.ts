@@ -193,6 +193,13 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                         default: false,
                         description: 'Whether to remove fields with null values from the output',
                     },
+                    {
+                        displayName: 'Sort Output Keys',
+                        name: 'sortOutput',
+                        type: 'boolean',
+                        default: true,
+                        description: 'Whether to sort the output keys alphabetically',
+                    },
                 ],
             },
         ],
@@ -210,6 +217,7 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         const triggerOn = this.getNodeParameter('triggerOn') as string;
         const options = this.getNodeParameter('options', {}) as IDataObject;
         const stripNull = options.stripNull as boolean || false;
+        const sortOutput = options.sortOutput !== false; // Default to true
 
         const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
         const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
@@ -225,7 +233,7 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
 
         // Helper function to format item data
         const formatItemData = (item: IDataObject): IDataObject => {
-            let formatted = cleanODataResponse(item);
+            let formatted = cleanODataResponse(item, sortOutput);
             if (stripNull) {
                 formatted = stripNullValues(formatted);
             }

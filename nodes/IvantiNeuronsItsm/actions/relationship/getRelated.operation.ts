@@ -30,6 +30,13 @@ export const properties: INodeProperties[] = [
                 description: 'Whether to remove fields with null values from the output',
             },
             {
+                displayName: 'Sort Output Keys',
+                name: 'sortOutput',
+                type: 'boolean',
+                default: true,
+                description: 'Whether to sort the output keys alphabetically',
+            },
+            {
                 displayName: 'Batching',
                 name: 'batching',
                 placeholder: 'Add Batching',
@@ -96,6 +103,8 @@ export async function execute(
             const objectName = `${businessObject}s`;
             const recId = this.getNodeParameter('recId', i) as string;
             const relationshipName = this.getNodeParameter('relationshipName', i) as string;
+            const itemOptions = this.getNodeParameter('options', i, {}) as IDataObject;
+            const sortOutput = itemOptions.sortOutput !== false;
 
             const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
             const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
@@ -108,13 +117,10 @@ export async function execute(
             });
 
             if (response.value && Array.isArray(response.value)) {
-                const relatedItems = response.value.map((item: IDataObject) => ({
-                    json: cleanODataResponse(item),
-                    pairedItem: {
-                        item: i,
-                    },
+                (response.value as IDataObject[]).forEach((item) => returnData.push({
+                    json: cleanODataResponse(item, sortOutput),
+                    pairedItem: { item: i },
                 }));
-                returnData.push(...relatedItems);
             } else {
                 returnData.push({
                     json: cleanODataResponse(response),
