@@ -6,7 +6,7 @@ import type {
     IPollFunctions,
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
-import { cleanODataResponse } from './methods/helpers';
+import { cleanODataResponse, sleep } from './methods/helpers';
 import { getObjectFields } from './methods/loadOptions';
 
 interface PollData {
@@ -107,6 +107,28 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                 },
             },
             {
+                displayName: 'Return All',
+                name: 'returnAll',
+                type: 'boolean',
+                default: false,
+                description: 'Whether to return all results or only up to a given limit',
+            },
+            {
+                displayName: 'Limit',
+                name: 'limit',
+                type: 'number',
+                default: 50,
+                description: 'Max number of results to return',
+                typeOptions: {
+                    minValue: 1,
+                },
+                displayOptions: {
+                    show: {
+                        returnAll: [false],
+                    },
+                },
+            },
+            {
                 displayName: 'Send Select Parameters',
                 name: 'useSelect',
                 type: 'boolean',
@@ -200,6 +222,41 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                         default: true,
                         description: 'Whether to sort the output keys alphabetically',
                     },
+                    {
+                        displayName: 'Pagination',
+                        name: 'pagination',
+                        placeholder: 'Add Pagination',
+                        type: 'fixedCollection',
+                        typeOptions: {
+                            multipleValues: false,
+                        },
+                        default: {
+                            pagination: {},
+                        },
+                        options: [
+                            {
+                                displayName: 'Pagination',
+                                name: 'pagination',
+                                values: [
+                                    {
+                                        displayName: 'Pages per Batch',
+                                        name: 'pagesPerBatch',
+                                        type: 'number',
+                                        default: 10,
+                                        description: 'Number of pages to fetch before pausing. -1 to disable delays.',
+                                    },
+                                    {
+                                        // eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+                                        displayName: 'Pagination Interval (ms)',
+                                        name: 'paginationInterval',
+                                        type: 'number',
+                                        default: 100,
+                                        description: 'Time (in milliseconds) between each batch of page requests. 0 for disabled.',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
                 ],
             },
         ],
@@ -218,6 +275,8 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         const options = this.getNodeParameter('options', {}) as IDataObject;
         const stripNull = options.stripNull as boolean || false;
         const sortOutput = options.sortOutput !== false; // Default to true
+        const returnAll = this.getNodeParameter('returnAll', false) as boolean;
+        const limit = this.getNodeParameter('limit', 50) as number;
 
         const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
         const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
@@ -332,35 +391,75 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         qs['$filter'] = filterParts.join(' and ');
         qs['$orderby'] = `${dateField} asc`;
 
+        // Pagination logic
+        const returnData: IDataObject[] = [];
+        let hasMore = true;
+        let skip = 0;
+        let pageCount = 0;
+        const maxBatchSize = 100; // Ivanti API limit
+        let remaining = returnAll ? Infinity : limit;
+
+        // Pagination options
+        const paginationOptions = (options.pagination as IDataObject)?.pagination as IDataObject | undefined;
+        let pagesPerBatch = -1;
+        let paginationInterval = 0;
+
+        if (paginationOptions) {
+            pagesPerBatch = paginationOptions.pagesPerBatch !== undefined ? (paginationOptions.pagesPerBatch as number) : 10;
+            paginationInterval = paginationOptions.paginationInterval !== undefined ? (paginationOptions.paginationInterval as number) : 100;
+        }
+        const shouldDelayPagination = pagesPerBatch !== -1 && paginationInterval > 0;
+
         try {
-            const response = await this.helpers.httpRequestWithAuthentication.call(
-                this,
-                'ivantiNeuronsItsmApi',
-                {
-                    method: 'GET',
-                    url: `${baseUrl}/api/odata/businessobject/${objectName}`,
-                    qs,
-                    json: true,
-                    skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
-                },
-            );
+            while (hasMore && remaining > 0) {
+                qs['$top'] = Math.min(maxBatchSize, remaining);
+                qs['$skip'] = skip;
 
-            const returnData: IDataObject[] = [];
+                const response = await this.helpers.httpRequestWithAuthentication.call(
+                    this,
+                    'ivantiNeuronsItsmApi',
+                    {
+                        method: 'GET',
+                        url: `${baseUrl}/api/odata/businessobject/${objectName}`,
+                        qs,
+                        json: true,
+                        skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
+                    },
+                );
 
-            if (response.value && Array.isArray(response.value) && response.value.length > 0) {
-                // Format each item with cleanODataResponse and optional stripNull
-                (response.value as IDataObject[]).forEach((item) => {
-                    returnData.push(formatItemData(item));
-                });
+                if (response.value && Array.isArray(response.value) && response.value.length > 0) {
+                    // Format each item
+                    (response.value as IDataObject[]).forEach((item) => {
+                        returnData.push(formatItemData(item));
+                    });
 
-                // Update lastTimeChecked to the date of the last processed item (convert to UTC Z)
-                const lastItem = response.value[response.value.length - 1] as IDataObject;
-                if (lastItem[dateField]) {
-                    pollData.lastTimeChecked = toUTCZFormat(lastItem[dateField] as string);
+                    const fetchedCount = response.value.length;
+                    remaining -= fetchedCount;
+                    skip += fetchedCount;
+                    pageCount++;
+
+                    // Check if we reached the end of available data
+                    if (fetchedCount < (qs['$top'] as number)) {
+                        hasMore = false;
+                    } else {
+                        // Delay if needed (only if we are going to fetch more)
+                        if (remaining > 0 && shouldDelayPagination && pageCount % pagesPerBatch === 0) {
+                            await sleep(paginationInterval);
+                        }
+                    }
+                } else {
+                    // No items returned
+                    hasMore = false;
                 }
             }
 
             if (returnData.length > 0) {
+                // Update lastTimeChecked to the date of the last processed item (convert to UTC Z)
+                const lastItem = returnData[returnData.length - 1];
+                if (lastItem[dateField]) {
+                    pollData.lastTimeChecked = toUTCZFormat(lastItem[dateField] as string);
+                }
+
                 return [this.helpers.returnJsonArray(returnData)];
             }
 
