@@ -7,6 +7,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 import { cleanODataResponse } from './methods/helpers';
+import { getObjectFields } from './methods/loadOptions';
 
 interface PollData {
     lastTimeChecked?: string;
@@ -106,6 +107,67 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                 },
             },
             {
+                displayName: 'Send Select Parameters',
+                name: 'useSelect',
+                type: 'boolean',
+                default: false,
+                description: 'Whether to specify which fields to return',
+            },
+            {
+                displayName: 'Select Mode',
+                name: 'selectMode',
+                type: 'options',
+                options: [
+                    {
+                        name: 'From List',
+                        value: 'list',
+                        description: 'Select fields from a dropdown (fetches available fields)',
+                    },
+                    {
+                        name: 'Manual',
+                        value: 'manual',
+                        description: 'Enter field names manually as comma-separated list',
+                    },
+                ],
+                default: 'manual',
+                displayOptions: {
+                    show: {
+                        useSelect: [true],
+                    },
+                },
+            },
+            {
+                displayName: 'Select Names or IDs',
+                name: 'select',
+                type: 'multiOptions',
+                typeOptions: {
+                    loadOptionsMethod: 'getObjectFields',
+                    loadOptionsDependsOn: ['businessObject'],
+                },
+                default: [],
+                description: 'Fields to return in the response. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+                displayOptions: {
+                    show: {
+                        useSelect: [true],
+                        selectMode: ['list'],
+                    },
+                },
+            },
+            {
+                displayName: 'Select (Manual)',
+                name: 'selectManual',
+                type: 'string',
+                default: '',
+                placeholder: 'RecId,Subject,Status',
+                description: 'Comma-separated list of fields to return',
+                displayOptions: {
+                    show: {
+                        useSelect: [true],
+                        selectMode: ['manual'],
+                    },
+                },
+            },
+            {
                 displayName: 'Options',
                 name: 'options',
                 type: 'collection',
@@ -134,6 +196,12 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                 ],
             },
         ],
+    };
+
+    methods = {
+        loadOptions: {
+            getObjectFields,
+        },
     };
 
     async poll(this: IPollFunctions): Promise<INodeExecutionData[][] | null> {
@@ -173,6 +241,30 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         const lastTimeCheckedUTC = toUTCZFormat(pollData.lastTimeChecked);
 
         const qs: IDataObject = {};
+
+        const useSelect = this.getNodeParameter('useSelect', false) as boolean;
+        if (useSelect) {
+            const selectMode = this.getNodeParameter('selectMode') as string;
+            let selectFields: string[] = [];
+
+            if (selectMode === 'list') {
+                selectFields = this.getNodeParameter('select') as string[] || [];
+            } else {
+                const selectManual = this.getNodeParameter('selectManual') as string;
+                if (selectManual) {
+                    selectFields = selectManual.split(',').map(s => s.trim());
+                }
+            }
+
+            // Ensure dateField is included
+            if (!selectFields.includes(dateField)) {
+                selectFields.push(dateField);
+            }
+
+            if (selectFields.length > 0) {
+                qs['$select'] = selectFields.join(',');
+            }
+        }
 
         // Manual mode: fetch the most recent record for testing
         if (this.getMode() === 'manual') {
