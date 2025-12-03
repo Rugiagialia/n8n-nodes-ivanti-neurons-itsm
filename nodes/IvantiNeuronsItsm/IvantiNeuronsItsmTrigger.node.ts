@@ -94,18 +94,7 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                     },
                 },
             },
-            {
-                displayName: 'Filter',
-                name: 'filter',
-                type: 'string',
-                default: '',
-                description: 'OData filter expression (e.g. Status eq \'Active\'). Recommended to exclude unwanted updates.',
-                displayOptions: {
-                    show: {
-                        triggerOn: ['objectUpdated'],
-                    },
-                },
-            },
+
             {
                 displayName: 'Return All',
                 name: 'returnAll',
@@ -186,6 +175,18 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                     show: {
                         useSelect: [true],
                         selectMode: ['manual'],
+                    },
+                },
+            },
+            {
+                displayName: 'Filter',
+                name: 'filter',
+                type: 'string',
+                default: '',
+                description: 'OData filter expression (e.g. Status eq \'Active\', Owner eq \'$NULL\'). Recommended to exclude unwanted updates.',
+                displayOptions: {
+                    show: {
+                        triggerOn: ['objectUpdated'],
                     },
                 },
             },

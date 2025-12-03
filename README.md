@@ -5,32 +5,6 @@
 
 This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.com/products/ivanti-neurons-for-itsm) (formerly Ivanti Service Manager). It allows you to interact with Ivanti's ITSM platform to manage business objects, relationships, attachments, and perform advanced searches.
 
-## What's New in v0.5.0
-
-- ⚡ **New Trigger Node** - Start workflows when business objects are created or updated in Ivanti Neurons ITSM
-- 🔄 **Polling Support** - Configurable polling intervals to check for changes
-- 🧹 **Data Cleaning** - Alphabetical key sorting and optional null value stripping for cleaner output
-- 🧪 **Manual Testing Mode** - Easily test triggers by fetching the most recent record
-
-## Previous Updates (v0.4.0)
-
-- 🎨 **Improved Batching & Pagination UX** - New collapsible "Batching" and "Pagination" groups for cleaner configuration
-- ⚡ **Enhanced Throttling** - Standardized batching logic across all operations (Create, Update, Delete, Get, Search)
-
-## Previous Updates (v0.3.5)
-
-- 🚑 **Compatibility Fix** - Resolved initialization error on older n8n versions by reverting credentials implementation to v0.2.0 standard
-- 🧹 **Strip Null Values Option** - New option to remove null values from output for cleaner data processing
-- 🐛 **Improved Error Handling** - Better parsing of Ivanti API errors, including support for binary/attachment operation errors
-
-## Previous Updates (v0.2.0)
-
-- ✨ **Search Resource** - Three new search operations (Simple Search, Full Text Search, Execute Saved Search)
-- 🏗️ **Modular Architecture** - Refactored to a clean, maintainable structure
-- 🎯 **Enhanced Error Handling** - Detailed error messages from Ivanti API
-- ✅ **Type Validation** - Proper field type validation with clear error messages
-- 🎨 **Dark Mode Support** - Updated icons for light and dark themes
-
 ## Features
 
 This node provides comprehensive access to Ivanti Neurons ITSM through three main resources:
@@ -257,6 +231,14 @@ Control pagination behavior for large datasets using the new **Pagination** fixe
  
 - **Pages per Batch** - Number of pages to fetch before pausing (default: 10, -1 to disable)
 - **Pagination Interval** - Milliseconds to wait between page batches (default: 100ms)
+
+### Sort Output Keys
+
+Control the order of keys in the output JSON:
+
+- **Available for**: All operations
+- **Default**: On (keys are sorted alphabetically, case-insensitive)
+- **When disabled**: Keys appear in the order returned by the API (or processing order)
 
 ### Field Selection
 

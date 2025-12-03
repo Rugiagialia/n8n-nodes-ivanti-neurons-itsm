@@ -178,27 +178,6 @@ export const properties: INodeProperties[] = [
         },
         options: [
             {
-                displayName: 'Strip Null Values',
-                name: 'stripNull',
-                type: 'boolean',
-                default: false,
-                description: 'Whether to remove fields with null values from the output',
-            },
-            {
-                displayName: 'Sort Output Keys',
-                name: 'sortOutput',
-                type: 'boolean',
-                default: true,
-                description: 'Whether to sort the output keys alphabetically',
-            },
-            {
-                displayName: 'Filter',
-                name: 'filter',
-                type: 'string',
-                default: '',
-                description: 'OData filter expression (e.g. Status eq \'Active\', Owner eq \'$NULL\')',
-            },
-            {
                 displayName: 'Batching',
                 name: 'batching',
                 placeholder: 'Add Batching',
@@ -240,6 +219,13 @@ export const properties: INodeProperties[] = [
                 ],
             },
             {
+                displayName: 'Filter',
+                name: 'filter',
+                type: 'string',
+                default: '',
+                description: 'OData filter expression (e.g. Status eq \'Active\', Owner eq \'$NULL\')',
+            },
+            {
                 displayName: 'Pagination',
                 name: 'pagination',
                 placeholder: 'Add Pagination',
@@ -279,6 +265,20 @@ export const properties: INodeProperties[] = [
                         ],
                     },
                 ],
+            },
+            {
+                displayName: 'Sort Output Keys',
+                name: 'sortOutput',
+                type: 'boolean',
+                default: true,
+                description: 'Whether to sort the output keys alphabetically',
+            },
+            {
+                displayName: 'Strip Null Values',
+                name: 'stripNull',
+                type: 'boolean',
+                default: false,
+                description: 'Whether to remove fields with null values from the output',
             },
         ],
     },
