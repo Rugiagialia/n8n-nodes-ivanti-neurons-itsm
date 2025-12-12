@@ -88,7 +88,7 @@ export async function getEmployees(this: ILoadOptionsFunctions, filter?: string)
 
     try {
         const qs: { [key: string]: any } = {
-            $select: 'RecId,DisplayName',
+            $select: 'RecId,DisplayName,EmployeeLocation',
             $top: 20,
         };
 
@@ -110,7 +110,7 @@ export async function getEmployees(this: ILoadOptionsFunctions, filter?: string)
         return {
             results: items.map((item: any) => ({
                 name: item.DisplayName || item.RecId,
-                value: item.RecId,
+                value: item.EmployeeLocation ? `${item.RecId}|${item.EmployeeLocation}` : item.RecId,
             })),
         };
 
