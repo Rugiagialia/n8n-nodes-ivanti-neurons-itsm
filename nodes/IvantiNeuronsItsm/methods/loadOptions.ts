@@ -150,7 +150,7 @@ export async function getSubscriptions(this: ILoadOptionsFunctions, filter?: str
             .filter((item: any) => !query || (item.strName && item.strName.toLowerCase().includes(query)))
             .map((item: any) => ({
                 name: item.strName,
-                value: item.strSubscriptionId,
+                value: `${item.strSubscriptionId}|${item.strRecId}`,
             }))
             .sort((a: any, b: any) => a.name.localeCompare(b.name));
 
@@ -160,5 +160,75 @@ export async function getSubscriptions(this: ILoadOptionsFunctions, filter?: str
         return {
             results: [{ name: `Error: ${error.message}`, value: '' }],
         };
+    }
+}
+export async function getSubscriptionParameters(this: ILoadOptionsFunctions, filter?: string) {
+    const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
+    const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
+    const allowUnauthorizedCerts = credentials.allowUnauthorizedCerts as boolean;
+    const subscriptionIdValue = this.getCurrentNodeParameter('subscriptionId') as IDataObject;
+    const rawSubscriptionId = (subscriptionIdValue?.value || subscriptionIdValue) as string;
+
+    // Split "SubscriptionID|TemplateRecID" if applicable, otherwise use as is (backward compat)
+    let templateRecId = rawSubscriptionId;
+    if (rawSubscriptionId && rawSubscriptionId.includes('|')) {
+        const parts = rawSubscriptionId.split('|');
+        if (parts.length > 1) {
+            templateRecId = parts[1]; // Use the strRecId (Template ID) for filtering
+        }
+    }
+
+    if (!templateRecId) {
+        return [];
+    }
+
+    try {
+        const returnItems: any[] = [];
+        let skip = 0;
+        let moreItems = true;
+        const top = 100;
+
+        while (moreItems) {
+            const options = {
+                method: 'GET' as const,
+                url: `${baseUrl}/api/odata/businessobject/ServiceReqTemplateParams`,
+                qs: {
+                    $filter: `ParentLink_RecID eq '${templateRecId}'`,
+                    $select: 'RecId,DisplayName,DisplayType,Name',
+                    $top: top,
+                    $skip: skip,
+                },
+                json: true,
+                skipSslCertificateValidation: allowUnauthorizedCerts,
+            };
+
+            const response = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', options);
+            const items = response.value || [];
+
+            if (items.length > 0) {
+                returnItems.push(...items);
+                skip += top;
+            } else {
+                moreItems = false;
+            }
+
+            if (items.length < top) {
+                moreItems = false;
+            }
+        }
+
+        const results = returnItems
+            .map((item: any) => ({
+                name: `${item.DisplayName} (${item.DisplayType})`,
+                value: item.RecId,
+            }))
+            .sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+        return results;
+
+    } catch (error) {
+        return [
+            { name: `Error: ${error.message}`, value: '' },
+        ];
     }
 }

@@ -11,7 +11,13 @@ import * as relationship from './actions/relationship';
 import * as attachment from './actions/attachment';
 import * as search from './actions/search';
 import * as serviceRequest from './actions/serviceRequest';
-import { getEmployees, getObjectFields, getSavedSearches, getSubscriptions } from './methods/loadOptions';
+import {
+    getEmployees,
+    getObjectFields,
+    getSavedSearches,
+    getSubscriptions,
+    getSubscriptionParameters,
+} from './methods/loadOptions';
 
 export class IvantiNeuronsItsm implements INodeType {
     description: INodeTypeDescription = {
@@ -218,6 +224,7 @@ export class IvantiNeuronsItsm implements INodeType {
         loadOptions: {
             getObjectFields,
             getSavedSearches,
+            getSubscriptionParameters,
         },
         listSearch: {
             getEmployees,

@@ -154,6 +154,54 @@ export const properties: INodeProperties[] = [
         },
     },
     {
+        displayName: 'Parameters',
+        name: 'parameters',
+        type: 'fixedCollection',
+        default: {},
+        typeOptions: {
+            multipleValues: true,
+        },
+        displayOptions: {
+            show: {
+                resource: ['serviceRequest'],
+                operation: ['create'],
+            },
+        },
+        options: [
+            {
+                name: 'parameter',
+                displayName: 'Parameter',
+                values: [
+                    {
+                        displayName: 'Name',
+                        name: 'name',
+                        type: 'options',
+                        typeOptions: {
+                            loadOptionsMethod: 'getSubscriptionParameters',
+                            loadOptionsDependsOn: ['subscriptionId'],
+                        },
+                        default: '',
+                        description: 'Select the parameter. The name includes the type to guide you.',
+                    },
+                    {
+                        displayName: 'Value',
+                        name: 'value',
+                        type: 'string',
+                        default: '',
+                        description: 'The value for the parameter',
+                    },
+                    {
+                        displayName: 'Option RecID',
+                        name: 'optionRecId',
+                        type: 'string',
+                        default: '',
+                        description: 'Required for Dropdowns/Picklists. The RecID of the selected option.',
+                    },
+                ],
+            },
+        ],
+    },
+    {
         displayName: 'Options',
         name: 'options',
         type: 'collection',
@@ -230,7 +278,13 @@ export async function execute(
             const { recId: strUserId, location: userLocation } = parseUserValue(rawUserId);
 
             const subscriptionIdValue = this.getNodeParameter('subscriptionId', i) as IDataObject;
-            const subscriptionId = (subscriptionIdValue.value || subscriptionIdValue) as string;
+            const rawSubscriptionId = (subscriptionIdValue.value || subscriptionIdValue) as string;
+
+            // Handle composite ID "SubscriptionID|TemplateRecID"
+            let subscriptionId = rawSubscriptionId;
+            if (rawSubscriptionId && rawSubscriptionId.includes('|')) {
+                subscriptionId = rawSubscriptionId.split('|')[0];
+            }
 
             const provideDetails = this.getNodeParameter('provideDetails', i) as boolean;
             let serviceReqData = {};
@@ -249,10 +303,27 @@ export async function execute(
             const saveReqState = options.saveReqState as boolean || false;
             const localOffset = options.localOffset as number || 0;
 
+            const parameterItems = this.getNodeParameter('parameters', i, {}) as IDataObject;
+            const parameters: IDataObject = {};
+            if (parameterItems.parameter) {
+                for (const param of parameterItems.parameter as IDataObject[]) {
+                    const paramRecId = param.name as string;
+                    const value = param.value as string;
+                    const optionRecId = param.optionRecId as string;
+
+                    if (paramRecId) {
+                        parameters[`par-${paramRecId}`] = value;
+                        if (optionRecId) {
+                            parameters[`par-${paramRecId}-recId`] = optionRecId;
+                        }
+                    }
+                }
+            }
+
             const body: IDataObject = {
                 attachmentsToDelete: [],
                 attachmentsToUpload: [],
-                parameters: {}, // Empty as requested
+                parameters,
                 delayedFulfill,
                 saveReqState,
                 serviceReqData,
