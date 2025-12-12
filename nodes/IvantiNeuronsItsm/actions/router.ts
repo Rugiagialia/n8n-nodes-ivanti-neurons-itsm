@@ -3,6 +3,7 @@ import * as businessObject from './businessObject';
 import * as relationship from './relationship';
 import * as attachment from './attachment';
 import * as search from './search';
+import * as serviceRequest from './serviceRequest';
 
 // Helper function to recursively remove null values from objects
 function stripNullValues(obj: IDataObject): IDataObject {
@@ -59,6 +60,9 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
     } else if (resource === 'search') {
         // @ts-expect-error - Dynamic operation execution
         result = await search[operation].execute.call(this, items);
+    } else if (resource === 'serviceRequest') {
+        // @ts-expect-error - Dynamic operation execution
+        result = await serviceRequest[operation].execute.call(this, items);
     } else {
         result = initialData;
     }

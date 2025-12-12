@@ -1,4 +1,4 @@
-import { ILoadOptionsFunctions } from 'n8n-workflow';
+import { IDataObject, ILoadOptionsFunctions } from 'n8n-workflow';
 
 export async function getObjectFields(this: ILoadOptionsFunctions) {
     const businessObject = this.getCurrentNodeParameter('businessObject') as string;
@@ -77,5 +77,88 @@ export async function getSavedSearches(this: ILoadOptionsFunctions) {
 
     } catch (error) {
         return [{ name: `Error: ${error.message}`, value: '' }];
+    }
+}
+
+export async function getEmployees(this: ILoadOptionsFunctions, filter?: string) {
+    const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
+    const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
+    const allowUnauthorizedCerts = credentials.allowUnauthorizedCerts as boolean;
+    const query = filter || '';
+
+    try {
+        const qs: { [key: string]: any } = {
+            $select: 'RecId,DisplayName',
+            $top: 20,
+        };
+
+        if (query) {
+            qs.$search = query;
+        }
+
+        const options = {
+            method: 'GET' as const,
+            url: `${baseUrl}/api/odata/businessobject/Frs_CompositeContract_Contacts`,
+            qs,
+            json: true,
+            skipSslCertificateValidation: allowUnauthorizedCerts,
+        };
+
+        const response = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', options);
+        const items = response.value || [];
+
+        return {
+            results: items.map((item: any) => ({
+                name: item.DisplayName || item.RecId,
+                value: item.RecId,
+            })),
+        };
+
+
+    } catch (error) {
+        return {
+            results: [{ name: `Error: ${error.message}`, value: '' }],
+        };
+    }
+}
+
+export async function getSubscriptions(this: ILoadOptionsFunctions, filter?: string) {
+    const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
+    const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
+    const allowUnauthorizedCerts = credentials.allowUnauthorizedCerts as boolean;
+    const strUserIdValue = this.getCurrentNodeParameter('strUserId') as IDataObject;
+    const strUserId = (strUserIdValue?.value || strUserIdValue) as string;
+    const query = (filter || '').toLowerCase();
+
+    if (!strUserId) {
+        return { results: [] };
+    }
+
+    try {
+        const options = {
+            method: 'GET' as const,
+            url: `${baseUrl}/api/rest/Template/${strUserId}/_All_`,
+            json: true,
+            skipSslCertificateValidation: allowUnauthorizedCerts,
+        };
+
+        const response = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', options);
+        // Response is array of objects directly
+        const items = response || [];
+
+        const results = items
+            .filter((item: any) => !query || (item.strName && item.strName.toLowerCase().includes(query)))
+            .map((item: any) => ({
+                name: item.strName,
+                value: item.strSubscriptionId,
+            }))
+            .sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+        return { results };
+
+    } catch (error) {
+        return {
+            results: [{ name: `Error: ${error.message}`, value: '' }],
+        };
     }
 }

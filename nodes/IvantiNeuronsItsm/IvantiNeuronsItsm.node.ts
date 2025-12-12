@@ -10,7 +10,8 @@ import * as businessObject from './actions/businessObject';
 import * as relationship from './actions/relationship';
 import * as attachment from './actions/attachment';
 import * as search from './actions/search';
-import { getObjectFields, getSavedSearches } from './methods/loadOptions';
+import * as serviceRequest from './actions/serviceRequest';
+import { getEmployees, getObjectFields, getSavedSearches, getSubscriptions } from './methods/loadOptions';
 
 export class IvantiNeuronsItsm implements INodeType {
     description: INodeTypeDescription = {
@@ -56,6 +57,10 @@ export class IvantiNeuronsItsm implements INodeType {
                         name: 'Search',
                         value: 'search',
                     },
+                    {
+                        name: 'Service Request',
+                        value: 'serviceRequest',
+                    },
                 ],
                 default: 'businessObject',
             },
@@ -96,6 +101,12 @@ export class IvantiNeuronsItsm implements INodeType {
             ...businessObject.get.properties,
             ...businessObject.getAll.properties,
             ...businessObject.update.properties,
+
+            // ----------------------------------
+            // Service Request
+            // ----------------------------------
+            serviceRequest.resource.operation,
+            ...serviceRequest.create.properties,
 
             // ----------------------------------
             // Relationship
@@ -207,6 +218,10 @@ export class IvantiNeuronsItsm implements INodeType {
         loadOptions: {
             getObjectFields,
             getSavedSearches,
+        },
+        listSearch: {
+            getEmployees,
+            getSubscriptions,
         },
     };
 
