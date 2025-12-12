@@ -17,6 +17,7 @@ import {
     getSavedSearches,
     getSubscriptions,
     getSubscriptionParameters,
+    getSubscriptionParametersSchema,
 } from './methods/loadOptions';
 
 export class IvantiNeuronsItsm implements INodeType {
@@ -225,6 +226,9 @@ export class IvantiNeuronsItsm implements INodeType {
             getObjectFields,
             getSavedSearches,
             getSubscriptionParameters,
+        },
+        resourceMapping: {
+            getSubscriptionParametersSchema,
         },
         listSearch: {
             getEmployees,

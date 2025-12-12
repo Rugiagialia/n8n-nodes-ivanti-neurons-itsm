@@ -156,10 +156,26 @@ export const properties: INodeProperties[] = [
     {
         displayName: 'Parameters',
         name: 'parameters',
-        type: 'fixedCollection',
-        default: {},
+        type: 'resourceMapper',
+        default: {
+            mappingMode: 'defineBelow',
+            value: null,
+        },
+        required: true,
         typeOptions: {
-            multipleValues: true,
+            loadOptionsDependsOn: ['subscriptionId.value'],
+            resourceMapper: {
+                resourceMapperMethod: 'getSubscriptionParametersSchema',
+                mode: 'add',
+                valuesLabel: 'Parameter Values',
+                supportAutoMap: false,
+                fieldWords: {
+                    singular: 'parameter',
+                    plural: 'parameters',
+                },
+                addAllFields: true,
+                multiKeyMatch: true,
+            },
         },
         displayOptions: {
             show: {
@@ -167,39 +183,18 @@ export const properties: INodeProperties[] = [
                 operation: ['create'],
             },
         },
-        options: [
-            {
-                name: 'parameter',
-                displayName: 'Parameter',
-                values: [
-                    {
-                        displayName: 'Name',
-                        name: 'name',
-                        type: 'options',
-                        typeOptions: {
-                            loadOptionsMethod: 'getSubscriptionParameters',
-                            loadOptionsDependsOn: ['subscriptionId'],
-                        },
-                        default: '',
-                        description: 'Select the parameter. The name includes the type to guide you.',
-                    },
-                    {
-                        displayName: 'Value',
-                        name: 'value',
-                        type: 'string',
-                        default: '',
-                        description: 'The value for the parameter',
-                    },
-                    {
-                        displayName: 'Option RecID',
-                        name: 'optionRecId',
-                        type: 'string',
-                        default: '',
-                        description: 'Required for Dropdowns/Picklists. The RecID of the selected option.',
-                    },
-                ],
+    },
+    {
+        displayName: 'For List parameters with multiple selections, separate values and RecIDs using ~^ (e.g., value1~^value2~^value3)',
+        name: 'listParameterNotice',
+        type: 'notice',
+        default: '',
+        displayOptions: {
+            show: {
+                resource: ['serviceRequest'],
+                operation: ['create'],
             },
-        ],
+        },
     },
     {
         displayName: 'Options',
@@ -303,20 +298,29 @@ export async function execute(
             const saveReqState = options.saveReqState as boolean || false;
             const localOffset = options.localOffset as number || 0;
 
-            const parameterItems = this.getNodeParameter('parameters', i, {}) as IDataObject;
             const parameters: IDataObject = {};
-            if (parameterItems.parameter) {
-                for (const param of parameterItems.parameter as IDataObject[]) {
-                    const paramRecId = param.name as string;
-                    const value = param.value as string;
-                    const optionRecId = param.optionRecId as string;
+            const parametersMappingMode = this.getNodeParameter('parameters.mappingMode', i, 'defineBelow') as string;
+            let parametersValue: IDataObject = {};
 
-                    if (paramRecId) {
-                        parameters[`par-${paramRecId}`] = value;
-                        if (optionRecId) {
-                            parameters[`par-${paramRecId}-recId`] = optionRecId;
-                        }
-                    }
+            if (parametersMappingMode === 'defineBelow') {
+                parametersValue = this.getNodeParameter('parameters.value', i, {}) as IDataObject;
+            } else {
+                // autoMapInputData
+                parametersValue = items[i].json;
+            }
+
+            for (const key of Object.keys(parametersValue)) {
+                if (key === 'subscriptionId' || key === 'strUserId') continue; // Skip other props if auto-mapping
+
+                const value = parametersValue[key] as string;
+                if (value === undefined || value === null) continue;
+
+                if (key.endsWith('_option')) {
+                    const originalRecId = key.replace('_option', '');
+                    parameters[`par-${originalRecId}-recId`] = value;
+                } else {
+                    // Assume keys are RecIDs (from schema)
+                    parameters[`par-${key}`] = value;
                 }
             }
 
