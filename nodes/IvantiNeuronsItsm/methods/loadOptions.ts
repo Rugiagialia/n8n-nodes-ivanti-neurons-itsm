@@ -171,7 +171,7 @@ export async function getSubscriptionParameters(this: ILoadOptionsFunctions) {
 
     // Split "SubscriptionID|TemplateRecID" if applicable, otherwise use as is (backward compat)
     let templateRecId = rawSubscriptionId;
-    if (rawSubscriptionId && rawSubscriptionId.includes('|')) {
+    if (rawSubscriptionId && typeof rawSubscriptionId === 'string' && rawSubscriptionId.includes('|')) {
         const parts = rawSubscriptionId.split('|');
         if (parts.length > 1) {
             templateRecId = parts[1]; // Use the strRecId (Template ID) for filtering
@@ -244,7 +244,7 @@ export async function getSubscriptionParametersSchema(this: ILoadOptionsFunction
 
     // Split "SubscriptionID|TemplateRecID" if applicable
     let templateRecId = rawSubscriptionId;
-    if (rawSubscriptionId && rawSubscriptionId.includes('|')) {
+    if (rawSubscriptionId && typeof rawSubscriptionId === 'string' && rawSubscriptionId.includes('|')) {
         const parts = rawSubscriptionId.split('|');
         if (parts.length > 1) {
             templateRecId = parts[1];

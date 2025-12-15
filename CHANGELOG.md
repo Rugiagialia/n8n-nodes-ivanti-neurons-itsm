@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2025-12-15
+
+### Added
+- **Service Request Resource**: New resource for creating service requests from templates/subscriptions
+- **Dynamic Parameter Mapping**: ResourceMapper UI for flexible parameter value assignment  
+- **Template Selection**: Resource locator for browsing and selecting subscription templates
+- **Request On Behalf**: Option to create service requests for other users
+- **Parameter Type Support**: Full support for text, dropdown (BO-linked and manual), checkbox (boolean), date, datetime, and time field types
+- **Required Field Validation**: Automatic detection and marking of required parameters based on template configuration
+- **Multi-value Lists**: Support for list parameters with multiple selections using `~^` separator
+
 ## [0.6.0] - 2025-12-02
 
 ### Added

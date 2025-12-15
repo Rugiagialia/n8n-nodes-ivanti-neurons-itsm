@@ -277,7 +277,7 @@ export async function execute(
 
             // Handle composite ID "SubscriptionID|TemplateRecID"
             let subscriptionId = rawSubscriptionId;
-            if (rawSubscriptionId && rawSubscriptionId.includes('|')) {
+            if (rawSubscriptionId && typeof rawSubscriptionId === 'string' && rawSubscriptionId.includes('|')) {
                 subscriptionId = rawSubscriptionId.split('|')[0];
             }
 
@@ -311,7 +311,7 @@ export async function execute(
 
             // Fetch parameter schema to determine types for formatting
             let templateRecId = rawSubscriptionId;
-            if (rawSubscriptionId && rawSubscriptionId.includes('|')) {
+            if (rawSubscriptionId && typeof rawSubscriptionId === 'string' && rawSubscriptionId.includes('|')) {
                 const parts = rawSubscriptionId.split('|');
                 if (parts.length > 1) {
                     templateRecId = parts[1];

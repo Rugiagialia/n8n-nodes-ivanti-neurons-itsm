@@ -75,6 +75,26 @@ Search and query business objects across your Ivanti instance:
 - Dynamic loading of saved searches from Ivanti
 - Field selection for optimized queries
 
+### 🎫 Service Request Operations
+
+Create service requests from templates/subscriptions:
+
+- **Create** - Create service requests using predefined templates with dynamic parameters
+
+**Advanced Features:**
+- **Template Selection** - Resource locator to browse and select subscription templates for specific users
+- **Dynamic Parameters** - ResourceMapper UI that automatically loads and displays template-specific parameters
+- **Parameter Type Support** - Full support for:
+  - Text fields
+  - Dropdowns (BO-linked and manual)
+  - Checkboxes (boolean values)
+  - Date, DateTime, and Time fields
+  - Multi-value lists (using `~^` separator)
+- **Required Field Validation** - Automatically marks required parameters based on template configuration
+- **Request On Behalf** - Create service requests for other users
+- **Custom Details** - Optional Subject and Symptom fields
+- **Advanced Options** - Delayed fulfill, custom forms, state saving, timezone offset
+
 ## Installation
 
 ### Community Install (Recommended)
@@ -189,6 +209,25 @@ Poll Times: Every Minute
 Options:
   - Filter: "Priority eq '1'"
   - Strip Null Values: true
+```
+
+### Example 6: Create a Service Request
+
+```javascript
+Resource: Service Request
+Operation: Create
+Requester User ID: (select from list or enter ID)
+Subscription ID: (select from list - shows available templates)
+Parameters: (ResourceMapper - fields load based on selected template)
+  - Category: "Hardware"
+  - Priority: "High"
+  - Description: "New laptop needed"
+  - DeliveryDate: (date picker)
+  - ApprovalRequired: true (checkbox)
+Options:
+  - Set Details:
+    - Subject: "New Equipment Request"
+    - Symptom: "Employee needs new laptop for project"
 ```
 
 ## Configuration Options
