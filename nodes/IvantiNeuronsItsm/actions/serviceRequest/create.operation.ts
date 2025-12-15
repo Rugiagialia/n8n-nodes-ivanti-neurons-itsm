@@ -341,7 +341,7 @@ export async function execute(
                     for (const item of schemaItems) {
                         parameterTypes[item.RecId] = (item.DisplayType || '').toLowerCase();
                     }
-                } catch (error) {
+                } catch {
                     // If schema fetch fails, continue with string values
                 }
             }

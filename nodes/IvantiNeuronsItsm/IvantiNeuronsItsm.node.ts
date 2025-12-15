@@ -49,16 +49,16 @@ export class IvantiNeuronsItsm implements INodeType {
                 noDataExpression: true,
                 options: [
                     {
+                        name: 'Attachment',
+                        value: 'attachment',
+                    },
+                    {
                         name: 'Business Object',
                         value: 'businessObject',
                     },
                     {
                         name: 'Relationship',
                         value: 'relationship',
-                    },
-                    {
-                        name: 'Attachment',
-                        value: 'attachment',
                     },
                     {
                         name: 'Search',

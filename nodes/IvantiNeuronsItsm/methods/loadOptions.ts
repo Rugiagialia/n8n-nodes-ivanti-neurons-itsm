@@ -87,7 +87,7 @@ export async function getEmployees(this: ILoadOptionsFunctions, filter?: string)
     const query = filter || '';
 
     try {
-        const qs: { [key: string]: any } = {
+        const qs: IDataObject = {
             $select: 'RecId,DisplayName,EmployeeLocation',
             $top: 20,
         };
@@ -108,9 +108,9 @@ export async function getEmployees(this: ILoadOptionsFunctions, filter?: string)
         const items = response.value || [];
 
         return {
-            results: items.map((item: any) => ({
-                name: item.DisplayName || item.RecId,
-                value: item.EmployeeLocation ? `${item.RecId}|${item.EmployeeLocation}` : item.RecId,
+            results: items.map((item: IDataObject) => ({
+                name: (item.DisplayName || item.RecId) as string,
+                value: item.EmployeeLocation ? `${item.RecId}|${item.EmployeeLocation}` : item.RecId as string,
             })),
         };
 
@@ -147,12 +147,12 @@ export async function getSubscriptions(this: ILoadOptionsFunctions, filter?: str
         const items = response || [];
 
         const results = items
-            .filter((item: any) => !query || (item.strName && item.strName.toLowerCase().includes(query)))
-            .map((item: any) => ({
-                name: item.strName,
+            .filter((item: IDataObject) => !query || ((item.strName as string) && (item.strName as string).toLowerCase().includes(query)))
+            .map((item: IDataObject) => ({
+                name: item.strName as string,
                 value: `${item.strSubscriptionId}|${item.strRecId}`,
             }))
-            .sort((a: any, b: any) => a.name.localeCompare(b.name));
+            .sort((a: IDataObject, b: IDataObject) => (a.name as string).localeCompare(b.name as string));
 
         return { results };
 
@@ -162,7 +162,7 @@ export async function getSubscriptions(this: ILoadOptionsFunctions, filter?: str
         };
     }
 }
-export async function getSubscriptionParameters(this: ILoadOptionsFunctions, filter?: string) {
+export async function getSubscriptionParameters(this: ILoadOptionsFunctions) {
     const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
     const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
     const allowUnauthorizedCerts = credentials.allowUnauthorizedCerts as boolean;
@@ -183,6 +183,7 @@ export async function getSubscriptionParameters(this: ILoadOptionsFunctions, fil
     }
 
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const returnItems: any[] = [];
         let skip = 0;
         let moreItems = true;
@@ -218,11 +219,11 @@ export async function getSubscriptionParameters(this: ILoadOptionsFunctions, fil
         }
 
         const results = returnItems
-            .map((item: any) => ({
+            .map((item: IDataObject) => ({
                 name: `${item.DisplayName} (${item.DisplayType})`,
-                value: item.RecId,
+                value: item.RecId as string,
             }))
-            .sort((a: any, b: any) => a.name.localeCompare(b.name));
+            .sort((a: IDataObject, b: IDataObject) => (a.name as string).localeCompare(b.name as string));
 
         return results;
 
@@ -232,6 +233,7 @@ export async function getSubscriptionParameters(this: ILoadOptionsFunctions, fil
         ];
     }
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getSubscriptionParametersSchema(this: ILoadOptionsFunctions): Promise<{ fields: any[] }> {
     const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
     const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
@@ -254,6 +256,7 @@ export async function getSubscriptionParametersSchema(this: ILoadOptionsFunction
     }
 
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const returnItems: any[] = [];
         let skip = 0;
         let moreItems = true;
@@ -290,6 +293,7 @@ export async function getSubscriptionParametersSchema(this: ILoadOptionsFunction
 
         const ignoredTypes = ['category', 'label', 'image', 'rowaligner'];
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fields: any[] = [];
         for (const item of returnItems) {
             const lowerType = (item.DisplayType || '').toLowerCase();
@@ -331,7 +335,7 @@ export async function getSubscriptionParametersSchema(this: ILoadOptionsFunction
                                 foundBoName = true;
                             }
                         }
-                    } catch (e) {
+                    } catch {
                         // ignore parse error
                     }
                 }
@@ -417,7 +421,7 @@ export async function getSubscriptionParametersSchema(this: ILoadOptionsFunction
 
         return { fields };
 
-    } catch (error) {
+    } catch {
         return { fields: [] };
     }
 }
