@@ -265,7 +265,7 @@ export async function getSubscriptionParametersSchema(this: ILoadOptionsFunction
                 url: `${baseUrl}/api/odata/businessobject/ServiceReqTemplateParams`,
                 qs: {
                     $filter: `ParentLink_RecID eq '${templateRecId}'`,
-                    $select: 'RecId,DisplayName,DisplayType,Name,ConfigOptions',
+                    $select: 'RecId,DisplayName,DisplayType,Name,ConfigOptions,RequiredExpression',
                     $top: top,
                     $skip: skip,
                 },
@@ -352,23 +352,40 @@ export async function getSubscriptionParametersSchema(this: ILoadOptionsFunction
                 const lowerType = displayType.toLowerCase();
 
                 if (foundBoName) {
-                    // Name (type) [BusinessObject_Value]
+                    // Name (type) [BusinessObject Value]
                     const boName = displayType.split(' ')[0]; // Extract BO name from "BB_Categories Dropdown"
                     const typeOnly = displayType.split(' ')[1] || displayType; // Get just the type part
-                    mainDisplayName = `${item.Name} (${typeOnly.toLowerCase()}) [${boName}_Value]`;
+                    mainDisplayName = `${item.Name} (${typeOnly.toLowerCase()}) [${boName} Value]`;
                 } else {
                     // Name (manual type) [Value]
                     mainDisplayName = `${item.Name} (${lowerType}) [Value]`;
                 }
             }
 
+            // Determine the field type for resourceMapper
+            let fieldType: string = 'string';
+            const isCheckbox = lowerType.includes('checkbox');
+            const isDateTime = lowerType.includes('datetime') || lowerType.includes('date');
+            const isTime = lowerType.includes('time') && !isDateTime;
+
+            if (isCheckbox) {
+                fieldType = 'boolean';
+            } else if (isDateTime) {
+                fieldType = 'dateTime';
+            } else if (isTime) {
+                fieldType = 'time';
+            }
+
+            // Check if parameter is required based on RequiredExpression
+            const isRequired = item.RequiredExpression === '$(true)';
+
             fields.push({
                 id: item.RecId,
                 displayName: mainDisplayName,
-                required: false,
+                required: isRequired,
                 defaultMatch: false,
                 display: true,
-                type: 'string', // Always string for input mapping
+                type: fieldType,
             });
 
             // Secondary RecID field for dropdowns
@@ -379,7 +396,7 @@ export async function getSubscriptionParametersSchema(this: ILoadOptionsFunction
                 if (foundBoName) {
                     const boName = displayType.split(' ')[0];
                     const typeOnly = displayType.split(' ')[1] || displayType;
-                    recIdDisplayName = `${item.Name} (${typeOnly.toLowerCase()}) [${boName}_RecId]`;
+                    recIdDisplayName = `${item.Name} (${typeOnly.toLowerCase()}) [${boName} RecId]`;
                 } else {
                     recIdDisplayName = `${item.Name} (${lowerType}) [RecId]`;
                 }
@@ -387,7 +404,7 @@ export async function getSubscriptionParametersSchema(this: ILoadOptionsFunction
                 fields.push({
                     id: `${item.RecId}_option`,
                     displayName: recIdDisplayName,
-                    required: false,
+                    required: isRequired,
                     defaultMatch: false,
                     display: true,
                     type: 'string',

@@ -309,19 +309,99 @@ export async function execute(
                 parametersValue = items[i].json;
             }
 
+            // Fetch parameter schema to determine types for formatting
+            let templateRecId = rawSubscriptionId;
+            if (rawSubscriptionId && rawSubscriptionId.includes('|')) {
+                const parts = rawSubscriptionId.split('|');
+                if (parts.length > 1) {
+                    templateRecId = parts[1];
+                }
+            }
+
+            // Fetch schema for type information
+            const parameterTypes: { [key: string]: string } = {};
+            if (templateRecId) {
+                try {
+                    const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
+                    const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
+                    const allowUnauthorizedCerts = credentials.allowUnauthorizedCerts as boolean;
+
+                    const schemaOptions = {
+                        method: 'GET' as const,
+                        url: `${baseUrl}/api/odata/businessobject/ServiceReqTemplateParams`,
+                        qs: {
+                            $filter: `ParentLink_RecID eq '${templateRecId}'`,
+                            $select: 'RecId,DisplayType',
+                        },
+                        json: true,
+                        skipSslCertificateValidation: allowUnauthorizedCerts,
+                    };
+                    const schemaResponse = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', schemaOptions);
+                    const schemaItems = schemaResponse.value || [];
+                    for (const item of schemaItems) {
+                        parameterTypes[item.RecId] = (item.DisplayType || '').toLowerCase();
+                    }
+                } catch (error) {
+                    // If schema fetch fails, continue with string values
+                }
+            }
+
             for (const key of Object.keys(parametersValue)) {
                 if (key === 'subscriptionId' || key === 'strUserId') continue; // Skip other props if auto-mapping
 
-                const value = parametersValue[key] as string;
+                let value = parametersValue[key];
                 if (value === undefined || value === null) continue;
+
+                // Get the original RecId (remove _option suffix if present)
+                const recId = key.endsWith('_option') ? key.replace('_option', '') : key;
+                const fieldType = parameterTypes[recId] || '';
+
+                // Convert boolean to string for API
+                if (typeof value === 'boolean') {
+                    value = String(value);
+                } else if (typeof value === 'object' && value !== null) {
+                    // Handle potential Luxon objects or other object types
+                    value = String(value);
+                }
+
+                // Format date/datetime/time values
+                if (typeof value === 'string' && value.trim()) {
+                    if (fieldType.includes('datetime')) {
+                        // DateTime: Preserve local time, replace offset with Z
+                        // Input: 2025-12-18T13:28:08.000+02:00 -> Output: 2025-12-18T13:28:08Z
+
+                        // Remove milliseconds if present
+                        if (value.includes('.')) {
+                            value = value.replace(/\.\d{3}/, '');
+                        }
+
+                        // Replace timezone offset (+02:00 or -05:00) with Z
+                        if (value.match(/[+-]\d{2}:\d{2}$/)) {
+                            value = value.replace(/[+-]\d{2}:\d{2}$/, 'Z');
+                        } else if (value.includes('T') && !value.endsWith('Z')) {
+                            value = value + 'Z';
+                        }
+                    } else if (fieldType.includes('date') && !fieldType.includes('datetime')) {
+                        // Date only: force midnight UTC
+                        // Use string matching to get the date part regardless of input timezone
+                        // Input: 2025-12-17T00:03:00.000+02:00 -> Output: 2025-12-17T00:00:00Z
+                        const dateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                        if (dateMatch) {
+                            // Construct date string directly to avoid any timezone object creation issues
+                            value = `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}T00:00:00Z`;
+                        }
+                    }
+                    // Time fields are already strings, no conversion needed
+                }
 
                 if (key.endsWith('_option')) {
                     const originalRecId = key.replace('_option', '');
-                    parameters[`par-${originalRecId}-recId`] = value;
+                    parameters[`par-${originalRecId}-recId`] = value as string;
                 } else {
                     // Assume keys are RecIDs (from schema)
-                    parameters[`par-${key}`] = value;
+                    parameters[`par-${key}`] = value as string;
                 }
+
             }
 
             const body: IDataObject = {
@@ -333,8 +413,12 @@ export async function execute(
                 serviceReqData,
                 strUserId,
                 subscriptionId,
-                localOffset,
             };
+
+            // Only include localOffset if explicitly set (not default 0)
+            if (localOffset !== 0) {
+                body.localOffset = localOffset;
+            }
 
             if (formName) {
                 body.formName = formName;
