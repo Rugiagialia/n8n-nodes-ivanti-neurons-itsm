@@ -13,7 +13,7 @@ export async function getObjectFields(this: ILoadOptionsFunctions, params?: IDat
                 if (resource === 'serviceRequest') {
                     businessObject = 'ServiceReqParam';
                 }
-            } catch (error) {
+            } catch {
                 // ignore
             }
         }

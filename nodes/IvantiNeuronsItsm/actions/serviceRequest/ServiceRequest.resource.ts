@@ -18,8 +18,10 @@ export const operation: INodeProperties = {
             action: 'Create a service request',
         },
         {
+            // eslint-disable-next-line n8n-nodes-base/node-param-option-name-wrong-for-get-many
             name: 'Get Submitted Parameters',
             value: 'getAll',
+            // eslint-disable-next-line n8n-nodes-base/node-param-operation-option-description-wrong-for-get-many
             description: 'Get all submitted parameters for an existing service request',
             action: 'Get submitted parameters',
         },
