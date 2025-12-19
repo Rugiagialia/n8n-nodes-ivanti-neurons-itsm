@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2025-12-19
+
+### Added
+- **Service Request Resource**: New "Get Submitted Parameters" operation to retrieve parameters for existing service requests.
+- **Service Request Create**: 
+  - Added standard **Batching** support for throttling bulk creations.
+  - Implemented **In-memory Schema Caching** with Promise-based concurrency handling for significantly improved performance in bulk executions.
+  - Added `Use Schema Cache` option to toggle caching behavior.
+- **Dropdowns**: Added logic to `getObjectFields` to ensure field selection dropdowns work even for empty Business Objects by resolving the BO name from parameters.
+
+### Changed
+- **UI Improvements**: Reordered "Create" operation properties for better user experience (Formatting notice moved above Parameters).
+- **Default Sorting**: Updated `CreatedDateTime` as the default sort field across all `getAll` operations (Service Request and Business Object resources) for consistent initial results.
+- **Service Request Parameters Notice**: Updated notice text in "Get Submitted Parameters" for better clarity on retrieving **ServiceReqParam** records.
+
 ## [0.7.0] - 2025-12-15
 
 ### Added

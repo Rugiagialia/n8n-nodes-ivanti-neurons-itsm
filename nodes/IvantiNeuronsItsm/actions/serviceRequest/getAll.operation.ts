@@ -24,7 +24,7 @@ export const properties: INodeProperties[] = [
         },
     },
     {
-        displayName: 'Note: This operation only retrieves the submitted parameters for the Service Request. To get general information about the Service Request itself, use the "Business Object" resource with the "Get" operation.',
+        displayName: 'This operation only retrieves the ServiceReqParam for the Service Request. To get general information about the Service Request itself, use the "Business Object" resource with the "Get" operation.',
         name: 'notice',
         type: 'notice',
         default: '',

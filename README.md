@@ -80,6 +80,7 @@ Search and query business objects across your Ivanti instance:
 Create service requests from templates/subscriptions:
 
 - **Create** - Create service requests using predefined templates with dynamic parameters
+- **Get Submitted Parameters** - Retrieve the specific parameters submitted for an existing service request
 
 **Advanced Features:**
 - **Template Selection** - Resource locator to browse and select subscription templates for specific users
