@@ -129,7 +129,7 @@ export const properties: INodeProperties[] = [
         displayName: 'Order By Field',
         name: 'orderByField',
         type: 'string',
-        default: '',
+        default: 'CreatedDateTime',
         placeholder: 'CreatedDateTime',
         description: 'Field to sort by',
         displayOptions: {

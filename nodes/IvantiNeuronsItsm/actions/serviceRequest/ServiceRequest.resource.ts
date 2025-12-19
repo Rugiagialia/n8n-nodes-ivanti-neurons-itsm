@@ -17,6 +17,12 @@ export const operation: INodeProperties = {
             description: 'Create a new service request',
             action: 'Create a service request',
         },
+        {
+            name: 'Get Submitted Parameters',
+            value: 'getAll',
+            description: 'Get all submitted parameters for an existing service request',
+            action: 'Get submitted parameters',
+        },
     ],
     default: 'create',
 };

@@ -1,7 +1,24 @@
 import { IDataObject, ILoadOptionsFunctions } from 'n8n-workflow';
 
-export async function getObjectFields(this: ILoadOptionsFunctions) {
-    const businessObject = this.getCurrentNodeParameter('businessObject') as string;
+export async function getObjectFields(this: ILoadOptionsFunctions, params?: IDataObject) {
+    let businessObject = this.getCurrentNodeParameter('businessObject') as string;
+
+    if (!businessObject) {
+        if (params?.businessObject) {
+            businessObject = params.businessObject as string;
+        } else {
+            // Fallback for Service Request where BO param doesn't exist
+            try {
+                const resource = this.getCurrentNodeParameter('resource') as string;
+                if (resource === 'serviceRequest') {
+                    businessObject = 'ServiceReqParam';
+                }
+            } catch (error) {
+                // ignore
+            }
+        }
+    }
+
     const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
     const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
     const objectName = `${businessObject}s`;

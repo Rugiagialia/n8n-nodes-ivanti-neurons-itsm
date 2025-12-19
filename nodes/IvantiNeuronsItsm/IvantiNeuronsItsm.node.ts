@@ -114,6 +114,7 @@ export class IvantiNeuronsItsm implements INodeType {
             // ----------------------------------
             serviceRequest.resource.operation,
             ...serviceRequest.create.properties,
+            ...serviceRequest.getAll.properties,
 
             // ----------------------------------
             // Relationship
