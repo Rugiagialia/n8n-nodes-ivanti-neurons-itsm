@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2026-01-08
+
+### Fixed
+- **Service Request Create**: Fixed an issue where the "Ignore SSL Issues" credential option was ignored during service request creation.
+
 ## [0.8.0] - 2025-12-19
 
 ### Added

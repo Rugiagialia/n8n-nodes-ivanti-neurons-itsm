@@ -541,6 +541,7 @@ export async function execute(
                     url: `${baseUrl}/api/rest/ServiceRequest/new`,
                     body,
                     json: true,
+                    skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
                 };
 
                 const response = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', requestOptions);
