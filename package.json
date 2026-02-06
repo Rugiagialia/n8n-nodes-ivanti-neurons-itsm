@@ -31,11 +31,13 @@
 		"n8nNodesApiVersion": 1,
 		"strict": false,
 		"credentials": [
-			"dist/credentials/IvantiNeuronsItsmApi.credentials.js"
+			"dist/credentials/IvantiNeuronsItsmApi.credentials.js",
+			"dist/credentials/IvantiNeuronsItsmWebServiceApi.credentials.js"
 		],
 		"nodes": [
 			"dist/nodes/IvantiNeuronsItsm/IvantiNeuronsItsm.node.js",
-			"dist/nodes/IvantiNeuronsItsm/IvantiNeuronsItsmTrigger.node.js"
+			"dist/nodes/IvantiNeuronsItsm/IvantiNeuronsItsmTrigger.node.js",
+			"dist/nodes/IvantiNeuronsItsmWebService/IvantiNeuronsItsmWebService.node.js"
 		]
 	},
 	"devDependencies": {

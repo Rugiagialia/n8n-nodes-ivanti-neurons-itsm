@@ -1,0 +1,11 @@
+<svg width="1024" height="1024" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+  <g fill="#FF1515">
+    <!-- The "Gamma" Shape (Top & Right Arm) -->
+    <!-- Top Bar: 50x20 | Right Bar: 20x50 -->
+    <path d="M0,0 H50 V50 H30 V20 H0 Z" />
+
+    <!-- The Square (Bottom Left) -->
+    <!-- Size: 20x20 | Gap from top: 10 | Gap from right: 10 -->
+    <rect x="0" y="30" width="20" height="20" />
+  </g>
+</svg>

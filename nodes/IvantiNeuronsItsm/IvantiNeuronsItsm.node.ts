@@ -22,7 +22,7 @@ import {
 
 export class IvantiNeuronsItsm implements INodeType {
     description: INodeTypeDescription = {
-        displayName: 'Ivanti Neurons for ITSM',
+        displayName: 'Ivanti Neurons for ITSM (REST)',
         name: 'ivantiNeuronsItsm',
         icon: { light: 'file:ivanti.light.svg', dark: 'file:ivanti.dark.svg' },
         group: ['transform'],
