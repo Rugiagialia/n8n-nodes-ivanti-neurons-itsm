@@ -69,7 +69,7 @@ Specialized logic for fulfilling user requests:
 
 ---
 
-### 🌐 Web Service Node: Advanced Operations
+### ⚙️ Web Service Node: Advanced Operations
 Perform specialized tasks using Ivanti's internal Web Service APIs for scenarios the REST API cannot handle.
 
 #### 🌍 Localization
