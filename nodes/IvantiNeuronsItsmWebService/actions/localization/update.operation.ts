@@ -110,7 +110,7 @@ export const properties: INodeProperties[] = [
 ];
 
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]): Promise<INodeExecutionData[]> {
-    return await executeWithSession.call(this, async (session: IIvantiSession) => {
+    return await (executeWithSession.call(this, async (session: IIvantiSession) => {
         const result: INodeExecutionData[] = [];
         const options = this.getNodeParameter('options', 0, {}) as IDataObject;
         const batching = (options.batching as IDataObject)?.batch as IDataObject | undefined;
@@ -127,14 +127,12 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
             try {
                 const tableRef = this.getNodeParameter('tableRef', i) as string;
                 const objectId = this.getNodeParameter('objectId', i) as string;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                let values = this.getNodeParameter('values', i) as any;
+                let values = this.getNodeParameter('values', i) as IDataObject | IDataObject[];
 
                 if (typeof values === 'string') {
                     try {
                         values = JSON.parse(values);
-                    } catch (e) {
+                    } catch {
                         // Fallback or leave as string if parse fails (will likely error downstream)
                     }
                 }
@@ -148,11 +146,10 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     _csrfToken: session.csrfToken,
                 };
 
-                const options: IDataObject = {
+                const options = {
                     method: 'POST',
-                    uri: `${session.tenantUrl}/Services/FormService.asmx/UpdateTranslations`,
+                    url: `${session.tenantUrl}/Services/FormService.asmx/UpdateTranslations`,
                     body,
-                    json: true,
                     headers: {
                         'Cookie': session.cookies.join('; '),
                     },
@@ -160,7 +157,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await this.helpers.request(options as any);
+                await this.helpers.httpRequest(options as any);
 
                 result.push({
                     json: { success: true, recordId: objectId },
@@ -193,5 +190,5 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
         }
 
         return result;
-    });
+    }) as Promise<INodeExecutionData[]>);
 }

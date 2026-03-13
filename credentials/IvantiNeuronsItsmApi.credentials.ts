@@ -19,7 +19,7 @@ export class IvantiNeuronsItsmApi implements ICredentialType {
             name: 'tenantUrl',
             type: 'string',
             default: '',
-            placeholder: 'https://example.ivanticloud.com',
+            placeholder: 'https://example.ivanticloud.com/HEAT',
         },
         {
             displayName: 'API Key',

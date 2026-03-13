@@ -110,7 +110,7 @@ export const properties: INodeProperties[] = [
 ];
 
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]): Promise<INodeExecutionData[]> {
-    return await executeWithSession.call(this, async (session: IIvantiSession) => {
+    return await (executeWithSession.call(this, async (session: IIvantiSession) => {
         const result: INodeExecutionData[] = [];
         const options = this.getNodeParameter('options', 0, {}) as IDataObject;
         const batching = (options.batching as IDataObject)?.batch as IDataObject | undefined;
@@ -137,11 +137,10 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     _csrfToken: session.csrfToken,
                 };
 
-                const options: IDataObject = {
+                const options = {
                     method: 'POST',
-                    uri: `${session.tenantUrl}/Services/FormService.asmx/GetValidationRecLocalizedValues`,
+                    url: `${session.tenantUrl}/Services/FormService.asmx/GetValidationRecLocalizedValues`,
                     body,
-                    json: true,
                     headers: {
                         'Cookie': session.cookies.join('; '),
                     },
@@ -149,7 +148,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const response = await this.helpers.request(options as any);
+                const response = await this.helpers.httpRequest(options as any);
 
                 // Parse the response to friendly JSON as requested by user
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -212,5 +211,5 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
         }
 
         return result;
-    });
+    }) as Promise<INodeExecutionData[]>);
 }

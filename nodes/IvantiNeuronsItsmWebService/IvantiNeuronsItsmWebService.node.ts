@@ -7,6 +7,7 @@ import {
 
 import { router } from './actions/router';
 import * as localization from './actions/localization';
+import * as search from './actions/search';
 
 export class IvantiNeuronsItsmWebService implements INodeType {
     description: INodeTypeDescription = {
@@ -40,6 +41,10 @@ export class IvantiNeuronsItsmWebService implements INodeType {
                         name: 'Localization',
                         value: 'localization',
                     },
+                    {
+                        name: 'Search',
+                        value: 'search',
+                    },
                 ],
                 default: 'localization',
             },
@@ -50,6 +55,11 @@ export class IvantiNeuronsItsmWebService implements INodeType {
             ...localization.resource.resource,
             ...localization.get.properties,
             ...localization.update.properties,
+
+            // ----------------------------------
+            // Search
+            // ----------------------------------
+            ...search.description,
         ],
     };
 

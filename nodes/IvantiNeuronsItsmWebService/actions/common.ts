@@ -9,7 +9,10 @@ export interface IIvantiSession {
     cookies: string[];
     csrfToken: string;
     tenantUrl: string;
+    sessionKey: string;
 }
+
+
 
 export const sleep = async (ms: number): Promise<void> => {
     if (ms <= 0) return;
@@ -24,6 +27,17 @@ export interface IvantiWebServiceErrorDetails {
     description?: string | string[];
 }
 
+export interface IAuthResponseData {
+    Authenticated: boolean;
+    SessionCsrfToken?: string;
+    SessionKey?: string;
+    InternalMessage?: string;
+}
+
+export interface IAuthResponse {
+    d: IAuthResponseData;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDetails => {
     let message = 'Request failed';
@@ -33,7 +47,7 @@ export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDeta
     // We need to extract and parse that JSON
     if (error.message && typeof error.message === 'string') {
         // Try to extract JSON from error.message (format: "500 - {...}")
-        const match = error.message.match(/^\d{3}\s*-\s*(.+)$/);
+        const match = (error.message as string).match(/^\d{3}\s*-\s*(.+)$/);
         if (match && match[1]) {
             try {
                 const errorData = JSON.parse(match[1]);
@@ -54,7 +68,7 @@ export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDeta
                             ? JSON.parse(errorData.LogEntryId)
                             : errorData.LogEntryId;
                         if (logEntry.Exception) {
-                            description = logEntry.Exception;
+                            description = logEntry.Exception as string;
                         }
                     } catch {
                         // Ignore JSON parse errors for LogEntryId
@@ -63,13 +77,13 @@ export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDeta
 
                 // Fallback to InternalMessage if no description yet
                 if (!description && errorData.InternalMessage) {
-                    description = errorData.InternalMessage;
+                    description = errorData.InternalMessage as string;
                 }
 
                 return { message, description };
             } catch {
                 // If JSON parsing fails, use the whole message as description
-                description = error.message;
+                description = error.message as string;
                 return { message, description };
             }
         }
@@ -78,8 +92,8 @@ export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDeta
     // Fallback: Check for n8n NodeApiError description
     if (error.description) {
         description = Array.isArray(error.description)
-            ? error.description
-            : [error.description];
+            ? error.description as string[]
+            : [error.description as string];
     }
 
     // Fallback: Check for context data from Ivanti Web Service
@@ -87,7 +101,7 @@ export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDeta
         let data = error.context.data;
 
         // If data is a Buffer-like object (has numeric keys) or has type/data properties
-        const keys = Object.keys(data);
+        const keys = Object.keys(data as object);
         const isBufferLike = keys.length > 0 && keys.every((k, i) => k === i.toString());
         const hasBufferStructure = data.type === 'Buffer' && Array.isArray(data.data);
 
@@ -95,27 +109,27 @@ export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDeta
             try {
                 let byteArray: number[];
                 if (isBufferLike) {
-                    byteArray = keys.map(k => data[k]);
+                    byteArray = keys.map(k => (data as IDataObject)[k] as number);
                 } else {
-                    byteArray = data.data;
+                    byteArray = data.data as number[];
                 }
-                const dataStr = String.fromCharCode.apply(null, byteArray as number[]);
+                const dataStr = String.fromCharCode.apply(null, byteArray);
                 data = JSON.parse(dataStr);
             } catch {
                 // If parsing fails, keep as-is
             }
         }
 
-        if (data.Message) {
-            message = data.Message;
+        if ((data as IDataObject).Message) {
+            message = (data as IDataObject).Message as string;
         }
-        if (data.LogEntryId) {
+        if ((data as IDataObject).LogEntryId) {
             try {
-                const logEntry = typeof data.LogEntryId === 'string'
-                    ? JSON.parse(data.LogEntryId)
-                    : data.LogEntryId;
+                const logEntry = typeof (data as IDataObject).LogEntryId === 'string'
+                    ? JSON.parse((data as IDataObject).LogEntryId as string)
+                    : (data as IDataObject).LogEntryId;
                 if (logEntry.Exception) {
-                    description = logEntry.Exception;
+                    description = logEntry.Exception as string;
                 }
             } catch {
                 // Ignore
@@ -131,21 +145,21 @@ export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDeta
             try {
                 body = JSON.parse(body);
             } catch {
-                description = body;
+                description = body as string;
                 return { message, description };
             }
         }
 
-        if (body.Message) {
-            message = body.Message;
+        if ((body as IDataObject).Message) {
+            message = (body as IDataObject).Message as string;
         }
-        if (body.LogEntryId) {
+        if ((body as IDataObject).LogEntryId) {
             try {
-                const logEntry = typeof body.LogEntryId === 'string'
-                    ? JSON.parse(body.LogEntryId)
-                    : body.LogEntryId;
+                const logEntry = typeof (body as IDataObject).LogEntryId === 'string'
+                    ? JSON.parse((body as IDataObject).LogEntryId as string)
+                    : (body as IDataObject).LogEntryId;
                 if (logEntry.Exception) {
-                    description = logEntry.Exception;
+                    description = logEntry.Exception as string;
                 }
             } catch {
                 // Ignore
@@ -158,7 +172,7 @@ export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDeta
 
     // Final fallback to error.message
     if (!description && error.message) {
-        description = error.message;
+        description = error.message as string;
     }
 
     return { message, description };
@@ -167,8 +181,8 @@ export const getWebServiceErrorDetails = (error: any): IvantiWebServiceErrorDeta
 
 export async function executeWithSession(
     this: IExecuteFunctions,
-    callback: (session: IIvantiSession) => Promise<any>,
-): Promise<any> {
+    callback: (session: IIvantiSession) => Promise<unknown>,
+): Promise<unknown> {
     const credentials = await this.getCredentials('ivantiNeuronsItsmWebServiceApi');
 
     if (!credentials) {
@@ -183,20 +197,21 @@ export async function executeWithSession(
 
     // Helper to make requests
     const makeRequest = async (endpoint: string, method: string, body: IDataObject, headers: IDataObject = {}) => {
-        const options: IDataObject = {
+        const options = {
             method,
-            uri: `${tenantUrl}${endpoint}`,
+            url: `${tenantUrl}${endpoint}`,
             body,
-            json: true,
             headers,
             rejectUnauthorized: !allowUnauthorizedCerts,
-            resolveWithFullResponse: true,
+            returnFullResponse: true,
         };
-        return await this.helpers.request(options);
+        // @ts-expect-error - options are correct
+        return await this.helpers.httpRequest(options);
     };
 
     let cookies: string[] = [];
     let csrfToken = '';
+    let sessionKey = '';
 
     // 1. Authorize
     try {
@@ -217,14 +232,17 @@ export async function executeWithSession(
             cookies = authResponse.headers['set-cookie'] as string[];
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (authResponse.body && (authResponse.body as any).d && (authResponse.body as any).d.SessionCsrfToken) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            csrfToken = (authResponse.body as any).d.SessionCsrfToken;
+        if (authResponse.body && (authResponse.body as IAuthResponse).d) {
+            const data = (authResponse.body as IAuthResponse).d;
+            if (data.SessionCsrfToken) {
+                csrfToken = data.SessionCsrfToken;
+            }
+            if (data.SessionKey) {
+                sessionKey = data.SessionKey;
+            }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (!(authResponse.body as any).d.Authenticated) {
+        if (!(authResponse.body as IAuthResponse).d.Authenticated) {
             throw new NodeOperationError(this.getNode(), 'Authentication failed: ' + JSON.stringify(authResponse.body));
         }
 
@@ -246,18 +264,21 @@ export async function executeWithSession(
 
         const roleResponse = await makeRequest('/Services/Session.asmx/SelectRole', 'POST', roleBody, headers);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (roleResponse.body && (roleResponse.body as any).d && (roleResponse.body as any).d.SessionCsrfToken) {
-            // Update CSRF token if changed (though usually stays same)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            csrfToken = (roleResponse.body as any).d.SessionCsrfToken;
+        if (roleResponse.body && (roleResponse.body as IAuthResponse).d) {
+            const data = (roleResponse.body as IAuthResponse).d;
+            if (data.SessionCsrfToken) {
+                csrfToken = data.SessionCsrfToken;
+            }
+            if (data.SessionKey) {
+                sessionKey = data.SessionKey;
+            }
         }
 
     } catch (error) {
         // Attempt logout if role selection fails
         try {
             await makeRequest('/Services/Session.asmx/Logout', 'POST', { _csrfToken: csrfToken }, { 'Cookie': cookies.join('; ') });
-        } catch (logoutError) {
+        } catch {
             // Ignore logout error
         }
         throw new NodeOperationError(this.getNode(), 'Role selection failed', { description: error.message });
@@ -267,6 +288,7 @@ export async function executeWithSession(
         cookies,
         csrfToken,
         tenantUrl,
+        sessionKey,
     };
 
     // 3. Execute Callback (The main action)
@@ -282,9 +304,8 @@ export async function executeWithSession(
                 'Cookie': cookies.join('; '),
             };
             await makeRequest('/Services/Session.asmx/Logout', 'POST', logoutBody, headers);
-        } catch (error) {
-            // We don't want to fail the execution if logout fails, but maybe log it?
-            // n8n doesn't have a standard logger exposed here easily, keeping silent as per practice.
+        } catch {
+            // We don't want to fail the execution if logout fails
         }
     }
 }

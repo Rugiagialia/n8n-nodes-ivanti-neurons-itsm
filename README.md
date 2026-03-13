@@ -5,141 +5,97 @@
 
 This is an n8n community node for [Ivanti Neurons for ITSM](https://www.ivanti.com/products/ivanti-neurons-for-itsm) (formerly Ivanti Service Manager). It allows you to interact with Ivanti's ITSM platform to manage business objects, relationships, attachments, and perform advanced searches.
 
+## 🏢 Dual Node Architecture
+
+This package provides two different nodes to handle the varied requirements of the Ivanti Neurons for ITSM platform:
+
+### 🚀 Ivanti Neurons for ITSM (REST)
+The **primary node** for most operations. It uses Modern API Keys and is optimized for standard Business Object lifecycle management.
+- **Best for**: Incidents, Service Requests, Tasks, Attachments, and common searches.
+- **Auth**: API Key (Modern/Fast).
+
+### ⚙️ Ivanti Neurons for ITSM (Web Service)
+An **advanced node** designed for specific internal operations and complex queries that the REST API cannot handle.
+- **Best for**: Localization/Translations, Many-to-Many relationship queries, and cross-object aliasing.
+- **Auth**: Session-based (Username/Password/Role).
+- **Visuals**: Easily identifiable by the **WS** badge on the icon.
+
+---
+
 ## Features
 
-This node provides comprehensive access to Ivanti Neurons ITSM through three main resources:
+### 🚀 REST Node: Core Operations
+The REST node handles the majority of Ivanti ITSM interactions using Efficient API Key authentication.
 
-### 📦 Business Object Operations
-
+#### 📦 Business Objects
 Manage any business object type (Incidents, Changes, Problems, etc.):
+- **Create** - New records with manual field mapping or raw JSON.
+- **Get** - Single record retrieval by ID with optional field selection.
+- **Get Many** - Multi-record fetch with OData filtering, sorting, and pagination.
+- **Update** - Modify existing record fields.
+- **Delete** - Remove records from the system.
+- **Advanced Features**: Manual type conversion (string, number, boolean, array, object), Field selection ($select), OData filtering ($filter), and Automatic Batching.
 
-- **Create** - Create new business objects with manual field mapping or JSON
-- **Get** - Retrieve a single business object by ID with optional field selection
-- **Get Many** - Retrieve multiple business objects with filtering, sorting, and pagination
-- **Update** - Update existing business objects
-- **Delete** - Delete business objects
+#### 🔗 Relationships
+Link and manage connections between objects:
+- **Create** - Link two business objects (e.g., Journal to Incident).
+- **Delete** - Remove an existing link.
+- **Get Related** - Retrieve all related business objects for a specific record.
 
-**Advanced Features:**
-- Manual field mapping with type conversion (string, number, boolean, array, object)
-- JSON mode for complex data structures
-- Field selection ($select) with list or manual mode
-- OData filtering ($filter)
-- Sorting ($orderby)
-- Automatic batching and throttling for bulk operations
-- Pagination controls for large datasets
+#### 📎 Attachments
+Standard file management:
+- **Upload** - Add files to any business object.
+- **Get** - Download attachment files by ID.
+- **Delete** - Remove attachments from records.
 
-### 🔗 Relationship Operations
-
-Link and manage relationships between business objects:
-
-- **Create** - Link two business objects (e.g., link a Journal Note to an Incident)
-- **Delete** - Remove a relationship between business objects
-- **Get Related** - Retrieve all related business objects
-
-### 📎 Attachment Operations
-
-Upload, download, and manage file attachments:
-
-- **Upload** - Upload files to business objects (Incidents, Changes, etc.)
-- **Get** - Download attachment files by ID
-- **Delete** - Remove attachments
-
-### ⚡ Trigger Operations
-
-Start workflows based on events in Ivanti Neurons ITSM:
-
-- **Object Created**: Triggers when a new object is created.
+#### ⚡ Triggers
+Start workflows based on platform events:
+- **Object Created**: Triggers when a new object is detected.
 - **Object Updated**: Triggers when an object is modified.
-  > **⚠️ Important**: Due to how Ivanti handles timestamps during manual object creation (timestamps are set at different stages of the creation process), the "Object Updated" trigger will also catch newly created objects. This happens because `LastModDateTime` is updated when the object is saved, which can be 1-3 minutes after `CreatedDateTime` is initially set.
-  >
-  > **Recommendation**: Use the **Filter** field (visible when "Object Updated" is selected) to exclude unwanted items. For example, filter by specific status changes that only happen on real updates.
+- **Polling**: Configurable intervals for checking updates.
+- **Filtering**: Native OData filters to ignore irrelevant updates.
 
-### Filtering
-- **Filter**: OData filter expression (e.g., `Status eq 'Active'`).
-  - For **Object Updated**: The Filter field appears as a main property.
-  - For **Object Created**: The Filter field is available under "Options".
-- **Polling** - Configurable polling interval (e.g., every minute, every hour)
-- **Filtering** - Optional OData filters to only trigger on specific records (e.g., only High Priority Incidents)
+#### 🔍 Search
+Standard search capabilities:
+- **Simple Search** - Standard OData-based querying.
+- **Full Text Search** - Full-text indexing searches.
+- **Execute Saved Search** - Run predefined Ivanti searches with dynamic parameters.
 
-### 🔍 Search Operations
+#### 🎫 Service Requests
+Specialized logic for fulfilling user requests:
+- **Create** - Template/Subscription-based creation with dynamic ResourceMapper parameters.
+- **Get Parameters** - Retrieve submitted `ServiceReqParam` records for a specific request.
+- **Validation**: Automatic detection of required fields from the template.
 
-Search and query business objects across your Ivanti instance:
+---
 
-- **Simple Search** - Search business objects with OData filtering, sorting, and pagination
-- **Full Text Search** - Perform full-text searches across all business object fields
-- **Execute Saved Search** - Run saved searches configured in Ivanti with dynamic parameter loading
+### 🌐 Web Service Node: Advanced Operations
+Perform specialized tasks using Ivanti's internal Web Service APIs for scenarios the REST API cannot handle.
 
-**Advanced Features:**
-- OData filtering and sorting
-- Configurable result limits and pagination
-- Dynamic loading of saved searches from Ivanti
-- Field selection for optimized queries
+#### 🌍 Localization
+- **Get Localized Values** - Fetch translated values for forms and dropdowns.
+- **Update Translations** - Modify localization strings across the system.
+- **Batching**: Built-in support for processing localization strings in throttled batches.
 
-### 🎫 Service Request Operations
+#### 🔎 Advanced Query (Search)
+- **Complex Joins** - Query many-to-many relationships (e.g., Search Incidents via linked CI relationships).
+- **Precise Aliasing** - Fetch specific fields from related objects in a single call (e.g., `CI.Name`).
+- **Flexible results** - Use `Return All` toggle or specify a precise result `Limit`.
 
-Create service requests from templates/subscriptions:
-
-- **Create** - Create service requests using predefined templates with dynamic parameters
-- **Get Submitted Parameters** - Retrieve the specific parameters submitted for an existing service request
-
-**Advanced Features:**
-- **Template Selection** - Resource locator to browse and select subscription templates for specific users
-- **Dynamic Parameters** - ResourceMapper UI that automatically loads and displays template-specific parameters
-- **Parameter Type Support** - Full support for:
-  - Text fields
-  - Dropdowns (BO-linked and manual)
-  - Checkboxes (boolean values)
-  - Date, DateTime, and Time fields
-  - Multi-value lists (using `~^` separator)
-- **Required Field Validation** - Automatically marks required parameters based on template configuration
-- **Request On Behalf** - Create service requests for other users
-- **Custom Details** - Optional Subject and Symptom fields
-- **Advanced Options** - Delayed fulfill, custom forms, state saving, timezone offset
-
-## Installation
-
-### Community Install (Recommended)
-
-For n8n Cloud or self-hosted instances with community nodes enabled:
-
-```bash
-npm install n8n-nodes-ivanti-neurons-itsm
-```
-
-### Manual Install (Development)
-
-For local development or custom n8n instances:
-
-```bash
-# Clone the repository
-git clone https://github.com/Rugiagialia/n8n-nodes-ivanti-neurons-itsm.git
-cd n8n-nodes-ivanti-neurons-itsm
-
-# Install dependencies
-npm install
-
-# Build the node
-npm run build
-
-# Link to n8n
-cd ~/.n8n/nodes
-npm install /path/to/n8n-nodes-ivanti-neurons-itsm
-```
-
-Restart n8n to load the node.
+---
 
 ## Credentials
 
-This node requires an Ivanti Neurons ITSM API credential with:
+You will need to configure different credentials depending on which node you are using:
 
-- **Tenant URL** - Your Ivanti cloud instance URL (e.g., `https://example.ivanticloud.com`)
-- **API Key** - Your REST API key from Ivanti
-- **Ignore SSL Issues** - Optional, for self-signed certificates
+### 1. Ivanti Neurons ITSM API (for REST Node)
+- **Tenant URL**: Your instance URL (e.g., `https://example.ivanticloud.com`).
+- **API Key**: Generated in **Configuration** → **Security Settings** → **API Keys**.
 
-To generate an API key in Ivanti:
-1. Log in to your Ivanti instance
-2. Navigate to **Configuration** → **Security Settings** → **API Keys**
-3. Create a new REST API key
+### 2. Ivanti Neurons ITSM Web Service API (for Web Service Node)
+- **Tenant URL**: Your instance URL.
+- **Username / Password**: Standard user credentials.
+- **Role**: The specific role to assume (e.g., `Admin`).
 
 ## Usage Examples
 

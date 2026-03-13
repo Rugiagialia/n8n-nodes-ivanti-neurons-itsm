@@ -5,5 +5,8 @@
 
     <!-- The Square (Bottom Left) -->
     <rect x="0" y="30" width="20" height="20" />
+    
+    <!-- WS Badge Text -->
+    <text x="25" y="15" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="14" font-weight="900" fill="#FF1515">WS</text>
   </g>
 </svg>

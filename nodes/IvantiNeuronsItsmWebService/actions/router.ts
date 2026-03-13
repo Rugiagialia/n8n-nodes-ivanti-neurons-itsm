@@ -1,23 +1,11 @@
 import { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import * as localization from './localization';
+import * as search from './search';
 
 export async function router(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
     const items = this.getInputData();
     const resource = this.getNodeParameter('resource', 0) as string;
     const operation = this.getNodeParameter('operation', 0) as string;
-
-    const ivantiValidationNodeData = {
-        resource,
-        operation,
-    } as {
-        resource: string;
-        operation: string;
-    };
-
-    const initialData = items.map((item) => ({
-        ...item,
-        json: { ...item.json, ...ivantiValidationNodeData },
-    }));
 
     if (resource === 'localization') {
         // @ts-expect-error - Dynamic operation execution
@@ -25,5 +13,15 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
         return [responseData];
     }
 
+    if (resource === 'search') {
+        const responseData = await search.query.execute.call(this, items);
+        return [responseData];
+    }
+
+    // Fallback
+    const initialData = items.map((item) => ({
+        ...item,
+        json: { ...item.json, resource, operation },
+    }));
     return [initialData];
 }

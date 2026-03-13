@@ -12,6 +12,7 @@ export class IvantiNeuronsItsmWebServiceApi implements ICredentialType {
     // @ts-ignore
     // eslint-disable-next-line @n8n/community-nodes/icon-validation
     icon = 'node:n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsmWebService';
+    documentationUrl = 'https://help.ivanti.com/ht/help/en_US/ISM/2022/admin/Content/Configure/API/RestAPI-Introduction.htm';
     properties: INodeProperties[] = [
         {
             displayName: 'Tenant URL',

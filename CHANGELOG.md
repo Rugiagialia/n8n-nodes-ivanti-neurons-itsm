@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2026-03-13
+
+### Added
+- **New Node**: `Ivanti Neurons for ITSM (Web Service)` for session-based operations.
+- **Localization Resource**: New resource for `Get` and `Update` operations for validation and localized values.
+- **Query Resource**: New advanced query builder using `ObjectQueryDefinition`.
+  - Supports **Relationships** (Many-to-Many joins).
+  - Supports **Select Fields** with aliasing (e.g., `CI.Name`).
+  - Supports **Filtering** with complex join logic.
+  - Supports **Sorting** (OrderBy) with `ASC`/`DESC`.
+  - Integrated **Pagination** (`Return All` / `Limit`).
+- **Session Management**: Automatic handled session lifecycle (Authorize -> SelectRole -> Action -> Logout) for reliable API interaction.
+- **Credentials**: New `Ivanti Neurons for ITSM Web Service API` credential type.
+
+### Changed
+- **Renamed Existing Node**: `Ivanti Neurons for ITSM` renamed to `Ivanti Neurons for ITSM (REST)` to distinguish it from the new Web Service-based operations.
+- **Node Icons**: Updated `Ivanti Neurons for ITSM (Web Service)` icons with a high-contrast "WS" badge strategically placed on the top bar of the logo for better visibility and differentiation from the REST node.
+
+
 ## [0.8.1] - 2026-01-08
 
 ### Fixed
