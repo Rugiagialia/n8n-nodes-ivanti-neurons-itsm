@@ -10,6 +10,34 @@ import { cleanODataResponse, sleep, getIvantiErrorDetails } from '../../methods/
 
 export const properties: INodeProperties[] = [
     {
+        displayName: 'Send Select Parameters',
+        name: 'useSelect',
+        type: 'boolean',
+        default: false,
+        description: 'Whether to specify which fields to return',
+        displayOptions: {
+            show: {
+                resource: ['relationship'],
+                operation: ['getRelated'],
+            },
+        },
+    },
+    {
+        displayName: 'Select (Manual)',
+        name: 'selectManual',
+        type: 'string',
+        default: '',
+        placeholder: 'RecId,Subject,Status',
+        description: 'Comma-separated list of fields to return',
+        displayOptions: {
+            show: {
+                resource: ['relationship'],
+                operation: ['getRelated'],
+                useSelect: [true],
+            },
+        },
+    },
+    {
         displayName: 'Options',
         name: 'options',
         type: 'collection',
@@ -22,6 +50,13 @@ export const properties: INodeProperties[] = [
             },
         },
         options: [
+            {
+                displayName: 'Filter',
+                name: 'filter',
+                type: 'string',
+                default: '',
+                description: 'OData filter expression to limit which related records are returned',
+            },
             {
                 displayName: 'Strip Null Values',
                 name: 'stripNull',
@@ -103,15 +138,29 @@ export async function execute(
             const objectName = `${businessObject}s`;
             const recId = this.getNodeParameter('recId', i) as string;
             const relationshipName = this.getNodeParameter('relationshipName', i) as string;
+            const useSelect = this.getNodeParameter('useSelect', i) as boolean;
             const itemOptions = this.getNodeParameter('options', i, {}) as IDataObject;
             const sortOutput = itemOptions.sortOutput !== false;
 
             const credentials = await this.getCredentials('ivantiNeuronsItsmApi');
             const baseUrl = (credentials.tenantUrl as string).replace(/\/$/, '');
+            const qs: IDataObject = {};
+
+            if (itemOptions.filter) {
+                qs['$filter'] = itemOptions.filter as string;
+            }
+
+            if (useSelect) {
+                const selectManual = this.getNodeParameter('selectManual', i) as string;
+                if (selectManual) {
+                    qs['$select'] = selectManual;
+                }
+            }
 
             const response = await this.helpers.httpRequestWithAuthentication.call(this, 'ivantiNeuronsItsmApi', {
                 method: 'GET',
                 url: `${baseUrl}/api/odata/businessobject/${objectName}('${recId}')/${relationshipName}`,
+                qs,
                 json: true,
                 skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
             });

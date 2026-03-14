@@ -2,12 +2,25 @@
 description: Publish the n8n node to npm
 ---
 
-1. Ensure `NPM_TOKEN` is set in your `.env` file.
-2. Run the build to ensure the `dist` folder is up to date:
+1. Ensure the package version and changelog are already prepared for the next release.
+2. Verify npm authentication before publishing:
+   ```bash
+   npm whoami
+   ```
+3. Run the build to ensure the `dist` folder is up to date:
    ```bash
    npm run build
    ```
-3. Publish to npm. This command temporarily creates an `.npmrc` file using the token from `.env` and removes it afterwards:
+4. Run lint:
    ```bash
-   set -a && source .env && set +a && echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc && npm publish --ignore-scripts; rm .npmrc
+   npm run lint
    ```
+5. Verify the package contents that will be published:
+   ```bash
+   npm pack --json --dry-run
+   ```
+6. Publish to npm. For this repository, ignore publish scripts if they are not needed for the release:
+   ```bash
+   npm publish --ignore-scripts
+   ```
+7. If publishing fails with a 2FA policy error, use an npm login or a granular token with publish permission and 2FA bypass enabled.

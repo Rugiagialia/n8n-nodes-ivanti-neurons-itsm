@@ -40,7 +40,7 @@ Manage any business object type (Incidents, Changes, Problems, etc.):
 Link and manage connections between objects:
 - **Create** - Link two business objects (e.g., Journal to Incident).
 - **Delete** - Remove an existing link.
-- **Get Related** - Retrieve all related business objects for a specific record.
+- **Get Related** - Retrieve related business objects for a specific record with optional OData `$filter` and manual `$select`.
 
 #### 📎 Attachments
 Standard file management:
@@ -136,7 +136,21 @@ File Name: "screenshot.png"
 Input Binary Field: "data"
 ```
 
-### Example 4: Search for Incidents
+### Example 4: Get Related Journal Records with Filtering
+
+```javascript
+Resource: Relationship
+Operation: Get Related
+Business Object Name: Incident
+Record ID: "12345ABC"
+Relationship Name: "IncidentContainsJournal"
+Send Select Parameters: true
+Select (Manual): "RecId,Subject"
+Options:
+  - Filter: "Subject eq 'n8n'"
+```
+
+### Example 5: Search for Incidents
 
 ```javascript
 // Simple Search
@@ -156,7 +170,7 @@ Saved Search: "My Active Incidents" (from dropdown)
 Return All: true
 ```
 
-### Example 5: Trigger on New Incident
+### Example 6: Trigger on New Incident
 
 ```javascript
 Node: Ivanti Neurons for ITSM Trigger
@@ -168,7 +182,7 @@ Options:
   - Strip Null Values: true
 ```
 
-### Example 6: Create a Service Request
+### Example 7: Create a Service Request
 
 ```javascript
 Resource: Service Request

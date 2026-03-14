@@ -189,7 +189,11 @@
                 "operation": "getRelated",
                 "recId": "={{ $('Business Object - Create Incident').item.json.RecId }}",
                 "relationshipName": "IncidentContainsJournal",
-                "options": {}
+                "useSelect": true,
+                "selectManual": "RecId,Subject",
+                "options": {
+                    "filter": "Subject eq 'n8n'"
+                }
             },
             "id": "d5bab80f-ac1a-4da8-9147-7ef93266de6d",
             "name": "Relationship - Get Related",
