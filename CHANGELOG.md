@@ -20,6 +20,14 @@ All notable changes to this project will be documented in this file.
 - **Renamed Existing Node**: `Ivanti Neurons for ITSM` renamed to `Ivanti Neurons for ITSM (REST)` to distinguish it from the new Web Service-based operations.
 - **Node Icons**: Updated `Ivanti Neurons for ITSM (Web Service)` icons with a high-contrast "WS" badge strategically placed on the top bar of the logo for better visibility and differentiation from the REST node.
 
+## [0.9.1] - 2026-03-14
+
+### Fixed
+- **Relationship Get Related**: Added missing OData `$filter` support so related-record queries can be narrowed down like other multi-record operations.
+
+### Added
+- **Relationship Get Related**: Added optional OData `$select` support with list/manual field selection, matching other multi-record operations more closely.
+
 
 ## [0.8.1] - 2026-01-08
 
