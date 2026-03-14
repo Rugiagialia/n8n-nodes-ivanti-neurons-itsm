@@ -40,7 +40,7 @@ Manage any business object type (Incidents, Changes, Problems, etc.):
 Link and manage connections between objects:
 - **Create** - Link two business objects (e.g., Journal to Incident).
 - **Delete** - Remove an existing link.
-- **Get Related** - Retrieve related business objects for a specific record with optional OData `$filter` and `$select`.
+- **Get Related** - Retrieve related business objects for a specific record with optional OData `$filter` and manual `$select`.
 
 #### 📎 Attachments
 Standard file management:

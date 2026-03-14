@@ -23,50 +23,6 @@ export const properties: INodeProperties[] = [
         },
     },
     {
-        displayName: 'Select Mode',
-        name: 'selectMode',
-        type: 'options',
-        options: [
-            {
-                name: 'From List',
-                value: 'list',
-                description: 'Select fields from a dropdown (fetches available fields)',
-            },
-            {
-                name: 'Manual',
-                value: 'manual',
-                description: 'Enter field names manually as comma-separated list',
-            },
-        ],
-        default: 'manual',
-        displayOptions: {
-            show: {
-                resource: ['relationship'],
-                operation: ['getRelated'],
-                useSelect: [true],
-            },
-        },
-    },
-    {
-        displayName: 'Select Names or IDs',
-        name: 'select',
-        type: 'multiOptions',
-        typeOptions: {
-            loadOptionsMethod: 'getObjectFields',
-            loadOptionsDependsOn: ['businessObject'],
-        },
-        default: [],
-        description: 'Fields to return in the response. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
-        displayOptions: {
-            show: {
-                resource: ['relationship'],
-                operation: ['getRelated'],
-                useSelect: [true],
-                selectMode: ['list'],
-            },
-        },
-    },
-    {
         displayName: 'Select (Manual)',
         name: 'selectManual',
         type: 'string',
@@ -78,7 +34,6 @@ export const properties: INodeProperties[] = [
                 resource: ['relationship'],
                 operation: ['getRelated'],
                 useSelect: [true],
-                selectMode: ['manual'],
             },
         },
     },
@@ -196,17 +151,9 @@ export async function execute(
             }
 
             if (useSelect) {
-                const selectMode = this.getNodeParameter('selectMode', i) as string;
-                if (selectMode === 'list') {
-                    const select = this.getNodeParameter('select', i) as string[];
-                    if (select && select.length > 0) {
-                        qs['$select'] = select.join(',');
-                    }
-                } else {
-                    const selectManual = this.getNodeParameter('selectManual', i) as string;
-                    if (selectManual) {
-                        qs['$select'] = selectManual;
-                    }
+                const selectManual = this.getNodeParameter('selectManual', i) as string;
+                if (selectManual) {
+                    qs['$select'] = selectManual;
                 }
             }
 

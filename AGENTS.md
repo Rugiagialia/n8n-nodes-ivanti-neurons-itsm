@@ -1,24 +1,52 @@
-# Local Agent Notes
+# Project Agent Notes
 
-## User Preferences
+## Scope
 
-- For `n8n` community node work in this repository, prefer testing in the user's existing local `n8n` instance when the user wants to validate changes there.
+These notes are intended to stay useful after cloning or checking out this repository in a new folder or worktree.
 
-## Local n8n Testing Rule
+## Local n8n Testing
 
-When starting work on a new `n8n` community node project, first inspect the local `n8n` package symlinks before suggesting or running `npm run build`, relinking, or manual UI tests.
+This repository is commonly tested through an existing local `n8n` instance instead of `n8n-node dev`.
 
-If the user wants to test changes in their normal local `n8n`:
+Before running manual tests in local `n8n`:
 
-1. Check which package copy is currently linked into local `n8n`.
-2. Look for duplicate or conflicting links, especially between `~/.n8n/nodes/node_modules` and `~/.n8n/custom/node_modules`.
-3. Make sure only the intended project copy is active.
-4. Only after the symlink state is clear, run `npm run build`.
-5. Then restart or start the user's normal local `n8n` and verify the change in the UI.
+1. Check which checkout is currently linked into local `n8n`.
+2. Inspect both `~/.n8n/nodes/node_modules` and `~/.n8n/custom/node_modules` for duplicate links to this package.
+3. Keep only one active package link for `n8n-nodes-ivanti-neurons-itsm`, pointing at the checkout being tested.
+4. Run `npm run build` only after the symlink state is correct.
+5. Restart or start the user's normal local `n8n`, then verify the change in the UI.
+
+After testing:
+
+1. Do not assume the temporary symlink should remain.
+2. Restore the previous link target or explicitly confirm with the user whether the temporary link should stay in place.
 
 ## Practical Guidance
 
-- Do not assume an `n8n` project is loaded from the current repository path.
-- If the user previously worked from another local clone or repo, verify whether `n8n` is still linked to that older path.
-- Duplicate active links can make it look like code changes are ignored even when the build succeeds.
-- Prefer fixing the symlink state first and only then moving to build and test steps.
+- Do not assume local `n8n` is loading the current checkout.
+- If changes appear to be ignored, verify symlinks before debugging code.
+- Duplicate active links can make a successful build look broken.
+- Do not commit generated tarballs such as `*.tgz`.
+
+## Release Guidance
+
+Before release:
+
+1. Run `npm run build`.
+2. Run `npm run lint`.
+3. Verify package contents with `npm pack --json --dry-run`.
+4. Confirm the tarball contains `dist/**`.
+5. Keep changelog entries under the next unreleased version, not under an already tagged version.
+
+Versioning:
+
+- Keep `package.json` version and git tag aligned, for example `0.9.2` and `v0.9.2`.
+- If the repository uses `v`-prefixed tags, keep using that convention.
+- After release preparation, push both the branch and the tag explicitly.
+
+## npm Publishing
+
+- If `npm whoami` fails, fix authentication before attempting `npm publish`.
+- Check whether auth is coming from `~/.npmrc` or from a project-specific `.npmrc`.
+- A token may work for `whoami` but still fail publish if the npm policy requires 2FA bypass for publishing.
+- If publish scripts are unnecessary or known to fail in this repository, `npm publish --ignore-scripts` is an acceptable release path.

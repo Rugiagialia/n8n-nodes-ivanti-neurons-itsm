@@ -26,7 +26,12 @@ All notable changes to this project will be documented in this file.
 - **Relationship Get Related**: Added missing OData `$filter` support so related-record queries can be narrowed down like other multi-record operations.
 
 ### Added
-- **Relationship Get Related**: Added optional OData `$select` support with list/manual field selection, matching other multi-record operations more closely.
+- **Relationship Get Related**: Added optional OData `$select` support with manual field selection.
+
+## [0.9.2] - 2026-03-14
+
+### Changed
+- **Relationship Get Related**: Removed the dropdown-based `$select` mode and kept manual field selection only, so related-record queries do not suggest fields from the wrong business object.
 
 
 ## [0.8.1] - 2026-01-08
