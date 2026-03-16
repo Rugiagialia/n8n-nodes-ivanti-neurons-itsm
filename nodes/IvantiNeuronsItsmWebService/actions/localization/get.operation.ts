@@ -137,18 +137,14 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     _csrfToken: session.csrfToken,
                 };
 
-                const options = {
+                const response = await session.request({
+                    endpoint: '/Services/FormService.asmx/GetValidationRecLocalizedValues',
                     method: 'POST',
-                    url: `${session.tenantUrl}/Services/FormService.asmx/GetValidationRecLocalizedValues`,
                     body,
                     headers: {
                         'Cookie': session.cookies.join('; '),
                     },
-                    rejectUnauthorized: false,
-                };
-
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const response = await this.helpers.httpRequest(options as any);
+                });
 
                 // Parse the response to friendly JSON as requested by user
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -180,7 +176,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                 } else {
                     // Fallback if structure is different
                     result.push({
-                        json: response,
+                        json: response as IDataObject,
                     });
                 }
 
@@ -191,7 +187,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     result.push({
                         json: {
                             error: message,
-                            details: description
+                            details: Array.isArray(description) ? description.join('\n') : description,
                         }
                     });
                     continue;

@@ -1,6 +1,7 @@
 import {
     IExecuteFunctions,
     IDataObject,
+    INodeExecutionData,
     NodeOperationError,
 } from 'n8n-workflow';
 
@@ -10,10 +11,16 @@ export interface IIvantiSession {
     csrfToken: string;
     tenantUrl: string;
     sessionKey: string;
+    request: (options: IIvantiWebServiceRequestOptions) => Promise<unknown>;
 }
 
-
-
+export interface IIvantiWebServiceRequestOptions {
+    endpoint: string;
+    method: string;
+    body?: IDataObject;
+    headers?: IDataObject;
+    returnFullResponse?: boolean;
+}
 export const sleep = async (ms: number): Promise<void> => {
     if (ms <= 0) return;
     return new Promise<void>((resolve) => {
@@ -183,129 +190,179 @@ export async function executeWithSession(
     this: IExecuteFunctions,
     callback: (session: IIvantiSession) => Promise<unknown>,
 ): Promise<unknown> {
-    const credentials = await this.getCredentials('ivantiNeuronsItsmWebServiceApi');
+    try {
+        const credentials = await this.getCredentials('ivantiNeuronsItsmWebServiceApi');
 
-    if (!credentials) {
-        throw new NodeOperationError(this.getNode(), 'No credentials found!');
-    }
+        if (!credentials) {
+            throw new NodeOperationError(this.getNode(), 'No credentials found!');
+        }
 
-    const tenantUrl = (credentials.tenantUrl as string).replace(/\/$/, ''); // Remove trailing slash
-    const username = credentials.username as string;
-    const password = credentials.password as string;
-    const role = credentials.role as string;
-    const allowUnauthorizedCerts = credentials.allowUnauthorizedCerts as boolean;
+        const tenantUrl = (credentials.tenantUrl as string).replace(/\/$/, ''); // Remove trailing slash
+        const username = credentials.username as string;
+        const password = credentials.password as string;
+        const role = credentials.role as string;
+        const allowUnauthorizedCerts = credentials.allowUnauthorizedCerts as boolean;
 
-    // Helper to make requests
-    const makeRequest = async (endpoint: string, method: string, body: IDataObject, headers: IDataObject = {}) => {
-        const options = {
+        const request = async ({
+            endpoint,
             method,
-            url: `${tenantUrl}${endpoint}`,
             body,
-            headers,
-            rejectUnauthorized: !allowUnauthorizedCerts,
-            returnFullResponse: true,
-        };
-        // @ts-expect-error - options are correct
-        return await this.helpers.httpRequest(options);
-    };
-
-    let cookies: string[] = [];
-    let csrfToken = '';
-    let sessionKey = '';
-
-    // 1. Authorize
-    try {
-        // Use provided appId or extract from tenantUrl
-        const appId = (credentials.appId as string) || tenantUrl.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0];
-
-        const authBody = {
-            AppId: appId,
-            Username: username,
-            Password: password,
-            tzoffset: 0,
-            timezoneName: 'UTC', // Defaulting to UTC
+            headers = {},
+            returnFullResponse = false,
+        }: IIvantiWebServiceRequestOptions): Promise<unknown> => {
+            const options = {
+                method,
+                url: `${tenantUrl}${endpoint}`,
+                body,
+                headers,
+                skipSslCertificateValidation: allowUnauthorizedCerts,
+                returnFullResponse,
+            };
+            // @ts-expect-error - options are correct
+            return await this.helpers.httpRequest(options);
         };
 
-        const authResponse = await makeRequest('/Services/Session.asmx/Authorize', 'POST', authBody);
+        let cookies: string[] = [];
+        let csrfToken = '';
+        let sessionKey = '';
 
-        if (authResponse.headers['set-cookie']) {
-            cookies = authResponse.headers['set-cookie'] as string[];
-        }
-
-        if (authResponse.body && (authResponse.body as IAuthResponse).d) {
-            const data = (authResponse.body as IAuthResponse).d;
-            if (data.SessionCsrfToken) {
-                csrfToken = data.SessionCsrfToken;
-            }
-            if (data.SessionKey) {
-                sessionKey = data.SessionKey;
-            }
-        }
-
-        if (!(authResponse.body as IAuthResponse).d.Authenticated) {
-            throw new NodeOperationError(this.getNode(), 'Authentication failed: ' + JSON.stringify(authResponse.body));
-        }
-
-    } catch (error) {
-        const usedAppId = (credentials.appId as string) || tenantUrl.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0];
-        throw new NodeOperationError(this.getNode(), `Login failed for AppId '${usedAppId}'`, { description: error.message });
-    }
-
-    // 2. Select Role
-    try {
-        const roleBody = {
-            sRole: role,
-            _csrfToken: csrfToken,
-        };
-
-        const headers = {
-            'Cookie': cookies.join('; '),
-        };
-
-        const roleResponse = await makeRequest('/Services/Session.asmx/SelectRole', 'POST', roleBody, headers);
-
-        if (roleResponse.body && (roleResponse.body as IAuthResponse).d) {
-            const data = (roleResponse.body as IAuthResponse).d;
-            if (data.SessionCsrfToken) {
-                csrfToken = data.SessionCsrfToken;
-            }
-            if (data.SessionKey) {
-                sessionKey = data.SessionKey;
-            }
-        }
-
-    } catch (error) {
-        // Attempt logout if role selection fails
+        // 1. Authorize
         try {
-            await makeRequest('/Services/Session.asmx/Logout', 'POST', { _csrfToken: csrfToken }, { 'Cookie': cookies.join('; ') });
-        } catch {
-            // Ignore logout error
+            // Use provided appId or extract from tenantUrl
+            const appId = (credentials.appId as string) || tenantUrl.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0];
+
+            const authBody = {
+                AppId: appId,
+                Username: username,
+                Password: password,
+                tzoffset: 0,
+                timezoneName: 'UTC', // Defaulting to UTC
+            };
+
+            const authResponse = await request({
+                endpoint: '/Services/Session.asmx/Authorize',
+                method: 'POST',
+                body: authBody,
+                returnFullResponse: true,
+            }) as {
+                body: IAuthResponse;
+                headers: IDataObject;
+            };
+
+            if (authResponse.headers['set-cookie']) {
+                cookies = authResponse.headers['set-cookie'] as string[];
+            }
+
+            if (authResponse.body && (authResponse.body as IAuthResponse).d) {
+                const data = (authResponse.body as IAuthResponse).d;
+                if (data.SessionCsrfToken) {
+                    csrfToken = data.SessionCsrfToken;
+                }
+                if (data.SessionKey) {
+                    sessionKey = data.SessionKey;
+                }
+            }
+
+            if (!(authResponse.body as IAuthResponse).d.Authenticated) {
+                throw new NodeOperationError(this.getNode(), 'Authentication failed: ' + JSON.stringify(authResponse.body));
+            }
+
+        } catch (error) {
+            const usedAppId = (credentials.appId as string) || tenantUrl.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0];
+            throw new NodeOperationError(this.getNode(), `Login failed for AppId '${usedAppId}'`, { description: error.message });
         }
-        throw new NodeOperationError(this.getNode(), 'Role selection failed', { description: error.message });
-    }
 
-    const session: IIvantiSession = {
-        cookies,
-        csrfToken,
-        tenantUrl,
-        sessionKey,
-    };
-
-    // 3. Execute Callback (The main action)
-    try {
-        return await callback(session);
-    } finally {
-        // 4. Logout (Always execute in finally block)
+        // 2. Select Role
         try {
-            const logoutBody = {
+            const roleBody = {
+                sRole: role,
                 _csrfToken: csrfToken,
             };
+
             const headers = {
                 'Cookie': cookies.join('; '),
             };
-            await makeRequest('/Services/Session.asmx/Logout', 'POST', logoutBody, headers);
-        } catch {
-            // We don't want to fail the execution if logout fails
+
+            const roleResponse = await request({
+                endpoint: '/Services/Session.asmx/SelectRole',
+                method: 'POST',
+                body: roleBody,
+                headers,
+                returnFullResponse: true,
+            }) as {
+                body: IAuthResponse;
+            };
+
+            if (roleResponse.body && (roleResponse.body as IAuthResponse).d) {
+                const data = (roleResponse.body as IAuthResponse).d;
+                if (data.SessionCsrfToken) {
+                    csrfToken = data.SessionCsrfToken;
+                }
+                if (data.SessionKey) {
+                    sessionKey = data.SessionKey;
+                }
+            }
+
+        } catch (error) {
+            // Attempt logout if role selection fails
+            try {
+                await request({
+                    endpoint: '/Services/Session.asmx/Logout',
+                    method: 'POST',
+                    body: { _csrfToken: csrfToken },
+                    headers: { 'Cookie': cookies.join('; ') },
+                    returnFullResponse: true,
+                });
+            } catch {
+                // Ignore logout error
+            }
+            throw new NodeOperationError(this.getNode(), 'Role selection failed', { description: error.message });
         }
+
+        const session: IIvantiSession = {
+            cookies,
+            csrfToken,
+            tenantUrl,
+            sessionKey,
+            request,
+        };
+
+        // 3. Execute Callback (The main action)
+        try {
+            return await callback(session);
+        } finally {
+            // 4. Logout (Always execute in finally block)
+            try {
+                const logoutBody = {
+                    _csrfToken: csrfToken,
+                };
+                const headers = {
+                    'Cookie': cookies.join('; '),
+                };
+                await request({
+                    endpoint: '/Services/Session.asmx/Logout',
+                    method: 'POST',
+                    body: logoutBody,
+                    headers,
+                    returnFullResponse: true,
+                });
+            } catch {
+                // We don't want to fail the execution if logout fails
+            }
+        }
+    } catch (error) {
+        if (this.continueOnFail()) {
+            const { message, description } = getWebServiceErrorDetails(error);
+            const result: INodeExecutionData[] = [
+                {
+                    json: {
+                        error: message,
+                        details: Array.isArray(description) ? description.join('\n') : description,
+                    },
+                },
+            ];
+            return result;
+        }
+        throw error;
     }
 }

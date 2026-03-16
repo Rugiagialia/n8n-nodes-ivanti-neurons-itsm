@@ -146,18 +146,14 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     _csrfToken: session.csrfToken,
                 };
 
-                const options = {
+                await session.request({
+                    endpoint: '/Services/FormService.asmx/UpdateTranslations',
                     method: 'POST',
-                    url: `${session.tenantUrl}/Services/FormService.asmx/UpdateTranslations`,
                     body,
                     headers: {
                         'Cookie': session.cookies.join('; '),
                     },
-                    rejectUnauthorized: false,
-                };
-
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await this.helpers.httpRequest(options as any);
+                });
 
                 result.push({
                     json: { success: true, recordId: objectId },
@@ -170,7 +166,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     result.push({
                         json: {
                             error: message,
-                            details: description
+                            details: Array.isArray(description) ? description.join('\n') : description,
                         }
                     });
                     continue;

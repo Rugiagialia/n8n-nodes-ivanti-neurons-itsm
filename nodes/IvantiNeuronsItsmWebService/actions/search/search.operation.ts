@@ -305,34 +305,14 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     query
                 };
 
-                const options = {
+                const response = await session.request({
+                    endpoint: '/ServiceAPI/FRSHEATIntegration.asmx/Search',
                     method: 'POST',
-                    url: `${session.tenantUrl}/ServiceAPI/FRSHEATIntegration.asmx/Search`,
                     body: payload,
                     headers: {
                         'Cookie': session.cookies.join('; '),
                     },
-                    rejectUnauthorized: false,
-                };
-
-                // Note: rejectUnauthorized should be handled by helpers.request based on defaults, 
-                // but executeWithSession doesn't expose the 'allowUnauthorizedCerts' setting easily to us here
-                // We might need to fetch credentials again or assume the session creation succeeded so generic request is fine.
-                // Actually, executeWithSession sets up the session. We should just make the request.
-                // However, helpers.request needs explicit rejectUnauthorized for self-signed certs.
-                // Let's grab credentials again briefly to check cert setting, or better update verifyWithSession to pass it.
-                // For now, let's trust the user's standard n8n setup or add a quick check.
-
-                // Re-get credentials to check SSL setting
-                const credentials = await this.getCredentials('ivantiNeuronsItsmWebServiceApi');
-                if (credentials?.allowUnauthorizedCerts) {
-                    options.rejectUnauthorized = false;
-                } else {
-                    options.rejectUnauthorized = true;
-                }
-
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const response = await this.helpers.httpRequest(options as any);
+                });
 
                 // Parse Response
                 // Format: { d: { status: "Success", objList: [ [ { FieldValues: [...] } ] ] } }
@@ -385,7 +365,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     result.push({
                         json: {
                             error: message,
-                            details: description
+                            details: Array.isArray(description) ? description.join('\n') : description,
                         }
                     });
                     continue;
