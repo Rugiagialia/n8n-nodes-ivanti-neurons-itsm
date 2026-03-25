@@ -23,6 +23,8 @@ After testing:
 
 1. Do not assume the temporary symlink should remain.
 2. Restore the previous link target or explicitly confirm with the user whether the temporary link should stay in place.
+3. If you temporarily repointed the active symlink to a different worktree, record the previous target before changing it so it can be restored exactly.
+4. If you only need a startup smoke test, it is acceptable to start local `n8n` and verify a healthy response such as `GET /healthz`, but this does not replace a real credential-backed functional test.
 
 ## Practical Guidance
 
@@ -43,6 +45,7 @@ Before release:
 6. Make sure `npm pack --json --dry-run` is run only after `npm run build` has finished; running them in parallel can fail because `dist/` may not exist yet.
 7. If working from multiple git worktrees, check whether `main` is already checked out elsewhere before doing merge, tag, or publish steps.
 8. If `main` is checked out in another worktree, perform the final merge/tag/publish sequence from that `main` checkout rather than trying to switch branches in the current worktree.
+9. When releasing from a feature worktree, create a normal feature commit on the feature branch first, then merge into `main`, and keep the release metadata changes (`package.json`, `CHANGELOG.md`, tag) in a separate release commit on `main`.
 
 Versioning:
 
@@ -56,6 +59,10 @@ Versioning:
 
 - If `npm whoami` fails, fix authentication before attempting `npm publish`.
 - Check whether auth is coming from `~/.npmrc` or from a project-specific `.npmrc`.
+- If the repository contains a project `.npmrc`, verify whether it overrides the token from `~/.npmrc` before publishing.
 - A token may work for `whoami` but still fail publish if the npm policy requires 2FA bypass for publishing.
 - If publish scripts are unnecessary or known to fail in this repository, `npm publish --ignore-scripts` is an acceptable release path.
 - If `npm publish` is blocked by this repository's `prepublishOnly` script after build/lint/pack checks already passed, use `npm publish --ignore-scripts` instead of trying to bypass the release checks in another way.
+- If `npm publish` returns an unexpected registry error such as `404` even though `npm whoami` works and package ownership is correct, compare the effective auth token source from the project `.npmrc` and `~/.npmrc`.
+- If publish must use the home npm config instead of the project `.npmrc`, prefer `npm pack` first and then publish the generated tarball from a temporary directory with `--userconfig ~/.npmrc`.
+- Do not publish from a temporary directory until the tarball has already been verified from the intended, fully built checkout.
