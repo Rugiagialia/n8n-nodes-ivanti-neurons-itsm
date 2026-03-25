@@ -95,8 +95,10 @@ You will need to configure different credentials depending on which node you are
 
 ### 2. Ivanti Neurons ITSM Web Service API (for Web Service Node)
 - **Tenant URL**: Your instance URL.
+- **App ID**: Optional override for the `Authorize` request when the tenant hostname is not the correct app identifier.
 - **Username / Password**: Standard user credentials.
 - **Role**: The specific role to assume (e.g., `Admin`).
+- **Session Timezone**: The node currently creates Web Service sessions with a fixed `tzoffset = 0` and `timezoneName = UTC`.
 
 ## Usage Examples
 
