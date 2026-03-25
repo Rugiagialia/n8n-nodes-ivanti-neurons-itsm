@@ -5,6 +5,11 @@ import {
     NodeOperationError,
 } from 'n8n-workflow';
 
+import {
+    buildWebServiceAuthorizeBody,
+    resolveWebServiceAppId,
+} from '../shared/auth';
+
 
 export interface IIvantiSession {
     cookies: string[];
@@ -228,16 +233,12 @@ export async function executeWithSession(
 
         // 1. Authorize
         try {
-            // Use provided appId or extract from tenantUrl
-            const appId = (credentials.appId as string) || tenantUrl.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0];
-
-            const authBody = {
-                AppId: appId,
-                Username: username,
-                Password: password,
-                tzoffset: 0,
-                timezoneName: 'UTC', // Defaulting to UTC
-            };
+            const authBody = buildWebServiceAuthorizeBody({
+                tenantUrl,
+                credentialsLike: credentials,
+                username,
+                password,
+            });
 
             const authResponse = await request({
                 endpoint: '/Services/Session.asmx/Authorize',
@@ -268,7 +269,7 @@ export async function executeWithSession(
             }
 
         } catch (error) {
-            const usedAppId = (credentials.appId as string) || tenantUrl.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0];
+            const usedAppId = resolveWebServiceAppId(tenantUrl, credentials.appId);
             throw new NodeOperationError(this.getNode(), `Login failed for AppId '${usedAppId}'`, { description: error.message });
         }
 

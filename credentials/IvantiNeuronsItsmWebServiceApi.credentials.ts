@@ -5,6 +5,11 @@ import {
     INodeProperties,
 } from 'n8n-workflow';
 
+import {
+    DEFAULT_WEB_SERVICE_TIMEZONE_NAME,
+    DEFAULT_WEB_SERVICE_TZOFFSET,
+} from '../nodes/IvantiNeuronsItsmWebService/shared/auth';
+
 export class IvantiNeuronsItsmWebServiceApi implements ICredentialType {
     name = 'ivantiNeuronsItsmWebServiceApi';
     displayName = 'Ivanti Neurons for ITSM (Web Service) API';
@@ -12,7 +17,7 @@ export class IvantiNeuronsItsmWebServiceApi implements ICredentialType {
     // @ts-ignore
     // eslint-disable-next-line @n8n/community-nodes/icon-validation
     icon = 'node:n8n-nodes-ivanti-neurons-itsm.ivantiNeuronsItsmWebService';
-    documentationUrl = 'https://help.ivanti.com/ht/help/en_US/ISM/2022/admin/Content/Configure/API/RestAPI-Introduction.htm';
+    documentationUrl = 'https://help.ivanti.com/ht/help/en_US/ISM/2021/admin/Content/Configure/Develop/Web%20Service.htm';
     properties: INodeProperties[] = [
         {
             displayName: 'Tenant URL',
@@ -28,22 +33,6 @@ export class IvantiNeuronsItsmWebServiceApi implements ICredentialType {
             type: 'string',
             default: '',
             description: 'Optional. Override the App ID if it differs from the Tenant URL hostname (e.g. when using a reverse proxy).',
-        },
-        {
-            displayName: 'Timezone Offset',
-            name: 'tzoffset',
-            type: 'number',
-            default: 0,
-            description: 'The timezone offset in minutes (e.g. 0 for UTC, -180 for GMT+3).',
-            required: true,
-        },
-        {
-            displayName: 'Timezone Name',
-            name: 'timezoneName',
-            type: 'string',
-            default: 'UTC',
-            description: 'The timezone name (e.g. UTC, Europe/Vilnius).',
-            required: true,
         },
         {
             displayName: 'Username',
@@ -97,8 +86,8 @@ export class IvantiNeuronsItsmWebServiceApi implements ICredentialType {
                 AppId: '={{ $credentials.appId || $credentials.tenantUrl.replace(/^https?:\\/\\//i, "").split("/")[0].split(":")[0] }}',
                 Username: '={{$credentials.username}}',
                 Password: '={{$credentials.password}}',
-                tzoffset: '={{$credentials.tzoffset || 0}}',
-                timezoneName: '={{$credentials.timezoneName || "UTC"}}',
+                tzoffset: DEFAULT_WEB_SERVICE_TZOFFSET,
+                timezoneName: DEFAULT_WEB_SERVICE_TIMEZONE_NAME,
             },
             skipSslCertificateValidation: '={{$credentials.allowUnauthorizedCerts}}',
         },
