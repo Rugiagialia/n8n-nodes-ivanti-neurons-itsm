@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.2] - 2026-03-25
+
+### Fixed
+- **Web Service Session Authorization**: Standardized the Web Service `Authorize` payload so credential tests and runtime execution both use the same fixed session timezone values (`tzoffset = 0`, `timezoneName = UTC`).
+
+### Changed
+- **Web Service Credentials**: Removed timezone fields from the credential UI because the internal session auth endpoint does not expose a clearly documented, user-meaningful timezone configuration.
+- **Web Service Documentation Link**: Updated the Web Service credential documentation link to point to Ivanti's Web Service documentation instead of the REST API documentation.
+
 ## [0.10.1] - 2026-03-25
 
 ### Added
