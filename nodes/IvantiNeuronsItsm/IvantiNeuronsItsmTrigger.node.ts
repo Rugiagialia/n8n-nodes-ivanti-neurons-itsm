@@ -11,6 +11,7 @@ import { getObjectFields } from './methods/loadOptions';
 
 interface PollData {
     lastTimeChecked?: string;
+    seenRecIds?: Record<string, string>;
 }
 
 // Helper function to recursively remove null values from objects
@@ -198,6 +199,13 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                 default: {},
                 options: [
                     {
+                        displayName: 'Deduplicate By RecId',
+                        name: 'deduplicateByRecId',
+                        type: 'boolean',
+                        default: true,
+                        description: 'Whether to suppress records whose RecId was already emitted during the overlap retention window',
+                    },
+                    {
                         displayName: 'Filter',
                         name: 'filter',
                         type: 'string',
@@ -210,18 +218,14 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                         },
                     },
                     {
-                        displayName: 'Strip Null Values',
-                        name: 'stripNull',
-                        type: 'boolean',
-                        default: false,
-                        description: 'Whether to remove fields with null values from the output',
-                    },
-                    {
-                        displayName: 'Sort Output Keys',
-                        name: 'sortOutput',
-                        type: 'boolean',
-                        default: true,
-                        description: 'Whether to sort the output keys alphabetically',
+                        displayName: 'Overlap Seconds',
+                        name: 'overlapSeconds',
+                        type: 'number',
+                        default: 0,
+                        typeOptions: {
+                            minValue: 0,
+                        },
+                        description: 'How many seconds to look back before the last checked time to reduce missed updates near polling boundaries',
                     },
                     {
                         displayName: 'Pagination',
@@ -258,6 +262,20 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                             },
                         ],
                     },
+                    {
+                        displayName: 'Sort Output Keys',
+                        name: 'sortOutput',
+                        type: 'boolean',
+                        default: true,
+                        description: 'Whether to sort the output keys alphabetically',
+                    },
+                    {
+                        displayName: 'Strip Null Values',
+                        name: 'stripNull',
+                        type: 'boolean',
+                        default: false,
+                        description: 'Whether to remove fields with null values from the output',
+                    },
                 ],
             },
         ],
@@ -276,6 +294,8 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         const options = this.getNodeParameter('options', {}) as IDataObject;
         const stripNull = options.stripNull as boolean || false;
         const sortOutput = options.sortOutput !== false; // Default to true
+        const overlapSeconds = Math.max(0, Number(options.overlapSeconds ?? 0) || 0);
+        const deduplicateByRecId = options.deduplicateByRecId !== false;
         const returnAll = this.getNodeParameter('returnAll', false) as boolean;
         const limit = this.getNodeParameter('limit', 50) as number;
 
@@ -289,6 +309,24 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         // Helper function to convert any timestamp to UTC Z format
         const toUTCZFormat = (timestamp: string): string => {
             return new Date(timestamp).toISOString();
+        };
+
+        const deduplicationEnabled = overlapSeconds > 0 && deduplicateByRecId;
+
+        const pruneSeenRecIds = (now: number): void => {
+            if (!pollData.seenRecIds) {
+                return;
+            }
+
+            const retentionMs = Math.max(overlapSeconds * 1000 * 2, 5 * 60 * 1000);
+            const cutoff = now - retentionMs;
+
+            pollData.seenRecIds = Object.fromEntries(
+                Object.entries(pollData.seenRecIds).filter(([, timestamp]) => {
+                    const parsed = Date.parse(timestamp);
+                    return !Number.isNaN(parsed) && parsed >= cutoff;
+                }),
+            );
         };
 
         // Helper function to format item data
@@ -307,6 +345,9 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
 
         // Ensure lastTimeChecked is in UTC Z format
         const lastTimeCheckedUTC = toUTCZFormat(pollData.lastTimeChecked);
+        const effectiveFrom = new Date(
+            new Date(lastTimeCheckedUTC).getTime() - overlapSeconds * 1000,
+        ).toISOString();
 
         const qs: IDataObject = {};
 
@@ -327,6 +368,10 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
             // Ensure dateField is included
             if (!selectFields.includes(dateField)) {
                 selectFields.push(dateField);
+            }
+
+            if (deduplicationEnabled && !selectFields.includes('RecId')) {
+                selectFields.push('RecId');
             }
 
             if (selectFields.length > 0) {
@@ -375,7 +420,7 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         const filterParts: string[] = [];
 
         // Add date filter with UTC Z format timestamp
-        filterParts.push(`${dateField} gt ${lastTimeCheckedUTC}`);
+        filterParts.push(`${dateField} gt ${effectiveFrom}`);
 
         // Add user filter if provided
         let filter = '';
@@ -412,6 +457,9 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         const shouldDelayPagination = pagesPerBatch !== -1 && paginationInterval > 0;
 
         try {
+            const apiItems: IDataObject[] = [];
+            pruneSeenRecIds(Date.now());
+
             while (hasMore && remaining > 0) {
                 qs['$top'] = Math.min(maxBatchSize, remaining);
                 qs['$skip'] = skip;
@@ -429,8 +477,24 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                 );
 
                 if (response.value && Array.isArray(response.value) && response.value.length > 0) {
-                    // Format each item
-                    (response.value as IDataObject[]).forEach((item) => {
+                    const responseItems = response.value as IDataObject[];
+                    apiItems.push(...responseItems);
+
+                    responseItems.forEach((item) => {
+                        const recId = typeof item.RecId === 'string' ? item.RecId : undefined;
+
+                        if (deduplicationEnabled && recId) {
+                            if (pollData.seenRecIds?.[recId]) {
+                                return;
+                            }
+
+                            if (!pollData.seenRecIds) {
+                                pollData.seenRecIds = {};
+                            }
+
+                            pollData.seenRecIds[recId] = new Date().toISOString();
+                        }
+
                         returnData.push(formatItemData(item));
                     });
 
@@ -454,13 +518,17 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                 }
             }
 
-            if (returnData.length > 0) {
-                // Update lastTimeChecked to the date of the last processed item (convert to UTC Z)
-                const lastItem = returnData[returnData.length - 1];
+            pruneSeenRecIds(Date.now());
+
+            if (apiItems.length > 0) {
+                // Update watermark from the last API item, even if overlap dedup filtered output items.
+                const lastItem = apiItems[apiItems.length - 1];
                 if (lastItem[dateField]) {
                     pollData.lastTimeChecked = toUTCZFormat(lastItem[dateField] as string);
                 }
+            }
 
+            if (returnData.length > 0) {
                 return [this.helpers.returnJsonArray(returnData)];
             }
 

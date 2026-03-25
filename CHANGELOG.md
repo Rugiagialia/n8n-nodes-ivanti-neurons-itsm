@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.1] - 2026-03-25
+
+### Added
+- **Trigger Overlap Protection**: Added `Overlap Seconds` to widen trigger polling windows for `Object Created` and `Object Updated`, with documentation focused on the `Object Updated` missed-update scenario.
+- **Trigger Deduplication**: Added workflow static data deduplication by `RecId` to suppress repeated emissions caused by overlap lookback windows.
+
+### Changed
+- **Trigger Field Selection**: Trigger polling now auto-includes the technical date field and also forces `RecId` into `$select` when overlap deduplication is active.
+- **Trigger Watermarking**: Polling watermark advancement now follows the last API item returned, even when overlap deduplication filters all emitted items.
+
 ## [0.10.0] - 2026-03-16
 
 ### Fixed

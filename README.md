@@ -54,6 +54,7 @@ Start workflows based on platform events:
 - **Object Updated**: Triggers when an object is modified.
 - **Polling**: Configurable intervals for checking updates.
 - **Filtering**: Native OData filters to ignore irrelevant updates.
+- **Overlap Protection**: Optional overlap window plus `RecId` deduplication to reduce missed `Object Updated` events near poll boundaries.
 
 #### 🔍 Search
 Standard search capabilities:
@@ -182,7 +183,20 @@ Options:
   - Strip Null Values: true
 ```
 
-### Example 7: Create a Service Request
+### Example 7: Trigger on Updated Incident with Overlap Protection
+
+```javascript
+Node: Ivanti Neurons for ITSM Trigger
+Trigger On: Object Updated
+Business Object Name: Incident
+Poll Times: Every Minute
+Filter: "Status eq 'Active'"
+Options:
+  - Overlap Seconds: 90
+  - Deduplicate By RecId: true
+```
+
+### Example 8: Create a Service Request
 
 ```javascript
 Resource: Service Request
@@ -256,6 +270,26 @@ Choose which fields to return:
 
 - **From List** - Select fields from a dropdown (dynamically fetched from Ivanti)
 - **Manual** - Enter field names as comma-separated list
+- **Trigger note** - Trigger polling automatically adds the technical date field (`CreatedDateTime` or `LastModDateTime`) and also adds `RecId` when overlap deduplication is active.
+
+### Trigger Overlap And Deduplication
+
+`Object Updated` polling can miss records when Ivanti applies an update or makes a filter condition true close to the polling boundary. By default the node uses a strict `dateField gt lastTimeChecked` filter, so the default `Overlap Seconds` remains `0` for backward compatibility.
+
+Use these trigger options when you need safer polling:
+
+- **Overlap Seconds** - Looks back before the previous watermark when building the polling filter. This is most useful for `Object Updated`, but is available for both trigger modes.
+- **Deduplicate By RecId** - Prevents the same record from being emitted repeatedly when overlap causes the same `RecId` to appear in multiple poll cycles. This is enabled by default.
+
+Recommended starting point:
+
+- Poll every 1 minute
+- Set `Overlap Seconds` to `90`
+- Keep `Deduplicate By RecId` enabled
+
+Tradeoff:
+
+- Higher overlap reduces missed updates but increases the chance that Ivanti returns the same record more than once. The node suppresses repeated records by caching recently emitted `RecId` values in workflow static data.
 
 ## API Documentation
 
