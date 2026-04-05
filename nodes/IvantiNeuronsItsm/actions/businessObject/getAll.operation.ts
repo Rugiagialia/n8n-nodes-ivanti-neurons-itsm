@@ -499,7 +499,8 @@ export async function execute(
                     json: {
                         error: message,
                         details: description
-                    }
+                    },
+                    pairedItem: { item: i },
                 });
                 continue;
             }

@@ -346,7 +346,10 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                             }
                         });
 
-                        result.push({ json: itemJson });
+                        result.push({
+                            json: itemJson,
+                            pairedItem: { item: i },
+                        });
                     });
 
                 } else if (data.status === 'Error' || data.exceptionReason) {
@@ -366,7 +369,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                         json: {
                             error: message,
                             details: Array.isArray(description) ? description.join('\n') : description,
-                        }
+                        },
+                        pairedItem: { item: i },
                     });
                     continue;
                 }

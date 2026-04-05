@@ -197,10 +197,14 @@ export async function execute(
                         fileName: uploadResult.FileName,
                         attachmentId: uploadResult.Message,
                         message: uploadResult.IsUploaded ? 'File uploaded successfully' : uploadResult.Message,
-                    }
+                    },
+                    pairedItem: { item: i },
                 });
             } else {
-                returnData.push({ json: { success: false, message: 'Unexpected response format', response: responseBody } });
+                returnData.push({
+                    json: { success: false, message: 'Unexpected response format', response: responseBody },
+                    pairedItem: { item: i },
+                });
             }
 
             // Apply batching delay before processing next item (HTTP Request node pattern)
@@ -218,7 +222,8 @@ export async function execute(
                     json: {
                         error: message,
                         details: description
-                    }
+                    },
+                    pairedItem: { item: i },
                 });
                 continue;
             }
@@ -231,5 +236,4 @@ export async function execute(
 
     return returnData;
 }
-
 

@@ -184,12 +184,7 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                 name: 'filter',
                 type: 'string',
                 default: '',
-                description: 'OData filter expression (e.g. Status eq \'Active\', Owner eq \'$NULL\'). Recommended to exclude unwanted updates.',
-                displayOptions: {
-                    show: {
-                        triggerOn: ['objectUpdated'],
-                    },
-                },
+                description: 'OData filter expression used to narrow trigger results (e.g. Status eq \'Active\', Owner eq \'$NULL\')',
             },
             {
                 displayName: 'Options',
@@ -199,23 +194,18 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
                 default: {},
                 options: [
                     {
+                        displayName: 'Apply Filter In Test',
+                        name: 'applyFilterInTest',
+                        type: 'boolean',
+                        default: true,
+                        description: 'Whether the manual test request should apply the configured Filter',
+                    },
+                    {
                         displayName: 'Deduplicate By RecId',
                         name: 'deduplicateByRecId',
                         type: 'boolean',
                         default: true,
                         description: 'Whether to suppress records whose RecId was already emitted during the overlap retention window',
-                    },
-                    {
-                        displayName: 'Filter',
-                        name: 'filter',
-                        type: 'string',
-                        default: '',
-                        description: 'OData filter expression (e.g. Status eq \'Active\', Owner eq \'$NULL\')',
-                        displayOptions: {
-                            show: {
-                                '/triggerOn': ['objectCreated'],
-                            },
-                        },
                     },
                     {
                         displayName: 'Overlap Seconds',
@@ -312,6 +302,18 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         };
 
         const deduplicationEnabled = overlapSeconds > 0 && deduplicateByRecId;
+        const getResolvedFilter = (): string => {
+            const rootFilter = this.getNodeParameter('filter', '') as string;
+            if (rootFilter) {
+                return rootFilter;
+            }
+
+            if (triggerOn === 'objectCreated') {
+                return (options.filter as string) || '';
+            }
+
+            return '';
+        };
 
         const pruneSeenRecIds = (now: number): void => {
             if (!pollData.seenRecIds) {
@@ -384,9 +386,10 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
             qs['$top'] = 1;
             qs['$orderby'] = `${dateField} desc`;
 
-            // Apply user filter if provided
-            if (options.filter) {
-                qs['$filter'] = options.filter as string;
+            const applyFilterInTest = options.applyFilterInTest !== false;
+            const resolvedFilter = getResolvedFilter();
+            if (applyFilterInTest && resolvedFilter) {
+                qs['$filter'] = resolvedFilter;
             }
 
             try {
@@ -423,12 +426,7 @@ export class IvantiNeuronsItsmTrigger implements INodeType {
         filterParts.push(`${dateField} gt ${effectiveFrom}`);
 
         // Add user filter if provided
-        let filter = '';
-        if (triggerOn === 'objectUpdated') {
-            filter = this.getNodeParameter('filter', '') as string;
-        } else {
-            filter = options.filter as string || '';
-        }
+        const filter = getResolvedFilter();
 
         if (filter) {
             filterParts.push(`(${filter})`);

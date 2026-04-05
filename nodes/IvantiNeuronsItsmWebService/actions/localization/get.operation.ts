@@ -170,6 +170,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     parsedItems.forEach(parsedItem => {
                         result.push({
                             json: parsedItem,
+                            pairedItem: { item: i },
                         });
                     });
 
@@ -177,6 +178,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                     // Fallback if structure is different
                     result.push({
                         json: response as IDataObject,
+                        pairedItem: { item: i },
                     });
                 }
 
@@ -188,7 +190,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                         json: {
                             error: message,
                             details: Array.isArray(description) ? description.join('\n') : description,
-                        }
+                        },
+                        pairedItem: { item: i },
                     });
                     continue;
                 }

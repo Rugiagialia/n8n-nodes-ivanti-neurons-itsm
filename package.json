@@ -16,12 +16,15 @@
 		"url": "git+https://github.com/Rugiagialia/n8n-nodes-ivanti-neurons-itsm.git"
 	},
 	"scripts": {
-		"build": "n8n-node build",
+		"build": "rm -f .tsbuildinfo && n8n-node build",
 		"build:watch": "tsc --watch",
 		"dev": "n8n-node dev",
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
+		"pack:dry-run": "npm pack --json --dry-run",
+		"pack:check": "node scripts/check-pack.js",
 		"release": "n8n-node release",
+		"release:check": "npm run build && npm run pack:check",
 		"prepublishOnly": "n8n-node prerelease"
 	},
 	"files": [

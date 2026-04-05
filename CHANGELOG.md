@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **Trigger Filter UX**: Unified the Trigger `Filter` field at the root level for both `Object Created` and `Object Updated`, while keeping runtime fallback support for legacy `Object Created` workflows that still store the filter inside `Options`.
+- **Trigger Manual Testing**: Manual trigger tests now act as a diagnostic preview that fetches the single most recent record, does not update trigger static data, and can optionally apply the configured filter through `Options` → `Apply Filter In Test`.
+- **Item Linking**: Added explicit `pairedItem` metadata to the main single-input REST and Web Service operations, including `Continue On Fail` outputs, so downstream expressions and mapping behave consistently.
+- **Release Validation**: Added a publish-package validation flow around `npm pack --json --dry-run` and moved TypeScript build info out of `dist/` so the published tarball stays focused on runtime artifacts.
+
 ## [0.10.2] - 2026-03-25
 
 ### Fixed

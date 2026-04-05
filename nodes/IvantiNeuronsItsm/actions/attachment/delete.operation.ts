@@ -95,7 +95,10 @@ export async function execute(
                 json: true,
                 skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
             });
-            returnData.push({ json: { success: true, message: 'Successfully deleted attachment', recId } });
+            returnData.push({
+                json: { success: true, message: 'Successfully deleted attachment', recId },
+                pairedItem: { item: i },
+            });
 
         } catch (error) {
             const { message, description } = getIvantiErrorDetails(error);
@@ -105,7 +108,8 @@ export async function execute(
                     json: {
                         error: message,
                         details: description
-                    }
+                    },
+                    pairedItem: { item: i },
                 });
                 continue;
             }

@@ -180,8 +180,8 @@ Node: Ivanti Neurons for ITSM Trigger
 Trigger On: Object Created
 Business Object Name: Incident
 Poll Times: Every Minute
+Filter: "Priority eq '1'"
 Options:
-  - Filter: "Priority eq '1'"
   - Strip Null Values: true
 ```
 
@@ -293,6 +293,20 @@ Tradeoff:
 
 - Higher overlap reduces missed updates but increases the chance that Ivanti returns the same record more than once. The node suppresses repeated records by caching recently emitted `RecId` values in workflow static data.
 
+### Trigger Manual Test Preview
+
+The trigger's manual test mode is a lightweight preview, not a full polling simulation:
+
+- **Result count** - Always fetches the single most recent matching record
+- **No watermark updates** - Manual tests do not update workflow static data such as `lastTimeChecked` or overlap deduplication state
+- **Filter control** - Use **Options → Apply Filter In Test** to decide whether the configured root `Filter` should be applied during manual testing
+
+For backward compatibility, existing workflows that still store the `Object Created` filter in the legacy `Options` location continue to work at runtime, but new configurations should use the root `Filter` field for both trigger types.
+
+### Item Linking
+
+Primary REST and Web Service operations now return explicit `pairedItem` metadata on success and `Continue On Fail` outputs where the result comes from a single input item. This keeps downstream expressions and source-item mapping behavior consistent across CRUD, attachment, relationship, search, and localization operations.
+
 ## API Documentation
 
 This node uses the Ivanti Neurons ITSM REST API:
@@ -320,12 +334,27 @@ npm run dev
 # Build for production
 npm run build
 
+# Validate the publish package
+npm run pack:check
+
 # Run linter
 npm run lint
 
 # Fix linting issues
 npm run lint:fix
 ```
+
+### Release Package Validation
+
+Before creating a release tag, run the publish checks in this order:
+
+```bash
+npm ci
+npm run build
+npm run pack:check
+```
+
+`npm run pack:check` runs `npm pack --json --dry-run` and verifies that the tarball contains the built REST node, Trigger node, Web Service node, and credential files. It also fails if `dist/tsconfig.tsbuildinfo` is present in the package.
 
 ## Compatibility
 
