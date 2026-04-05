@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-04-05
+
 ### Changed
 - **Trigger Filter UX**: Unified the Trigger `Filter` field at the root level for both `Object Created` and `Object Updated`, while keeping runtime fallback support for legacy `Object Created` workflows that still store the filter inside `Options`.
 - **Trigger Manual Testing**: Manual trigger tests now act as a diagnostic preview that fetches the single most recent record, does not update trigger static data, and can optionally apply the configured filter through `Options` → `Apply Filter In Test`.
