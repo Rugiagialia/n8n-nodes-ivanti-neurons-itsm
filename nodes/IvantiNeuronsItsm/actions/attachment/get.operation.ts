@@ -132,6 +132,7 @@ export async function execute(
                         fileName,
                     },
                 },
+                pairedItem: { item: i },
             };
             returnData.push(newItem);
 
@@ -143,7 +144,8 @@ export async function execute(
                     json: {
                         error: message,
                         details: description
-                    }
+                    },
+                    pairedItem: { item: i },
                 });
                 continue;
             }

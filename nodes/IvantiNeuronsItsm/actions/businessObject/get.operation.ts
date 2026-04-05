@@ -208,7 +208,10 @@ export async function execute(
                 });
 
                 if (response.value && Array.isArray(response.value) && response.value.length > 0) {
-                    returnData.push({ json: cleanODataResponse(response.value[0], sortOutput) as IDataObject });
+                    returnData.push({
+                        json: cleanODataResponse(response.value[0], sortOutput) as IDataObject,
+                        pairedItem: { item: i },
+                    });
                 } else {
                     throw new Error(`Item with ID '${recId}' not found.`);
                 }
@@ -220,7 +223,10 @@ export async function execute(
                     json: true,
                     skipSslCertificateValidation: credentials.allowUnauthorizedCerts as boolean,
                 });
-                returnData.push({ json: cleanODataResponse(response, sortOutput) });
+                returnData.push({
+                    json: cleanODataResponse(response, sortOutput),
+                    pairedItem: { item: i },
+                });
             }
 
         } catch (error) {
@@ -231,7 +237,8 @@ export async function execute(
                     json: {
                         error: message,
                         details: description
-                    }
+                    },
+                    pairedItem: { item: i },
                 });
                 continue;
             }

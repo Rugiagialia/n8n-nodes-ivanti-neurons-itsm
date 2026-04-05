@@ -157,6 +157,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 
                 result.push({
                     json: { success: true, recordId: objectId },
+                    pairedItem: { item: i },
                 });
 
             } catch (error) {
@@ -167,7 +168,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
                         json: {
                             error: message,
                             details: Array.isArray(description) ? description.join('\n') : description,
-                        }
+                        },
+                        pairedItem: { item: i },
                     });
                     continue;
                 }
