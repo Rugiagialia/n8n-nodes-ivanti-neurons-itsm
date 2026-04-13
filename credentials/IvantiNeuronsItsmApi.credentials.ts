@@ -54,6 +54,7 @@ export class IvantiNeuronsItsmApi implements ICredentialType {
             baseURL: '={{$credentials.tenantUrl}}',
             url: '/api/odata/businessobject/incidents',
             method: 'GET',
+            disableFollowRedirect: true,
             qs: {
                 $top: 1,
             },
