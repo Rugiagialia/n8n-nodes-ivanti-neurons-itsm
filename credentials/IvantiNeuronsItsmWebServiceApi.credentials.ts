@@ -82,6 +82,7 @@ export class IvantiNeuronsItsmWebServiceApi implements ICredentialType {
             baseURL: '={{$credentials.tenantUrl}}',
             url: '/Services/Session.asmx/Authorize',
             method: 'POST',
+            disableFollowRedirect: true,
             body: {
                 AppId: '={{ $credentials.appId || $credentials.tenantUrl.replace(/^https?:\\/\\//i, "").split("/")[0].split(":")[0] }}',
                 Username: '={{$credentials.username}}',

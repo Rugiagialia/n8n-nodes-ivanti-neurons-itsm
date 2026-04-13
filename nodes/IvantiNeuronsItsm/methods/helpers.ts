@@ -36,20 +36,45 @@ export const sleep = async (ms: number): Promise<void> => {
 
 export interface IvantiErrorDetails {
     message: string;
-    description?: string | string[];
+    description?: string;
 }
+
+const normalizeErrorText = (value: unknown): string | undefined => {
+    if (value === undefined || value === null) {
+        return undefined;
+    }
+
+    if (typeof value === 'string') {
+        return value;
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+        return String(value);
+    }
+
+    if (Array.isArray(value)) {
+        const normalized = value
+            .map((entry) => normalizeErrorText(entry))
+            .filter((entry): entry is string => Boolean(entry));
+
+        return normalized.length > 0 ? normalized.join('; ') : undefined;
+    }
+
+    try {
+        return JSON.stringify(value) ?? String(value);
+    } catch {
+        return String(value);
+    }
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
     let message = 'Request failed';
-    let description: string | string[] | undefined = undefined;
+    let description: string | undefined = undefined;
 
     // Check for n8n NodeApiError description (often contains the detailed error from the service)
     if (error.description) {
-        // Use description as the detailed error
-        description = Array.isArray(error.description)
-            ? error.description
-            : [error.description];
+        description = normalizeErrorText(error.description);
     }
 
     // Check for context data from Ivanti (e.g. ISM_4000)
@@ -83,22 +108,14 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
 
         // Use the code/description as the main message
         if (data.description) {
-            message = data.description;
+            message = normalizeErrorText(data.description) ?? message;
         } else if (data.code) {
             message = `Error ${data.code} `;
         }
 
         // Extract from data.message - prioritize this over generic error.description
         if (data.message) {
-            if (Array.isArray(data.message)) {
-                description = data.message.map((m: unknown) =>
-                    typeof m === 'string' ? m : JSON.stringify(m)
-                );
-            } else {
-                description = typeof data.message === 'string'
-                    ? data.message
-                    : JSON.stringify(data.message);
-            }
+            description = normalizeErrorText(data.message);
         }
     }
 
@@ -141,33 +158,25 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
         // Simple error format: { "Message": "..." }
         else if (body.Message) {
             if (!description) {
-                description = body.Message;
+                description = normalizeErrorText(body.Message);
             }
         }
         // Standard Ivanti error format: { "code": "...", "description": "...", "message": [...] }
         else if (body.code || body.description || body.message) {
             if (body.description) {
-                message = body.description;
+                message = normalizeErrorText(body.description) ?? message;
             } else if (body.code) {
                 message = `Error ${body.code} `;
             }
 
 
             if (!description && body.message) {
-                if (Array.isArray(body.message)) {
-                    description = body.message.map((m: unknown) =>
-                        typeof m === 'string' ? m : JSON.stringify(m)
-                    );
-                } else {
-                    description = typeof body.message === 'string'
-                        ? body.message
-                        : JSON.stringify(body.message);
-                }
+                description = normalizeErrorText(body.message);
             }
         }
         // Fallback to stringified body if it's an object
         else if (typeof body === 'object' && !description) {
-            description = JSON.stringify(body);
+            description = normalizeErrorText(body);
         }
     }
 
@@ -183,9 +192,6 @@ export const getIvantiErrorDetails = (error: any): IvantiErrorDetails => {
 export const getErrorMessage = (error: unknown): string => {
     const { message, description } = getIvantiErrorDetails(error);
     if (description) {
-        if (Array.isArray(description)) {
-            return description.join('; ');
-        }
         return description;
     }
     return message;
