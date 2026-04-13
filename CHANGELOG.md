@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-04-13
+
+### Fixed
+- **Credential Redirect Validation**: Credential tests for both REST and Web Service credentials now stop on HTTP redirects instead of silently following them, so non-canonical tenant URLs fail validation earlier.
+- **Error Text Normalization**: Normalized Ivanti error `message` and `description` values to strings before rethrowing as `NodeApiError`, reducing frontend rendering failures when the service returns object-shaped error payloads.
+
 ## [0.11.0] - 2026-04-05
 
 ### Changed
